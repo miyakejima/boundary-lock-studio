@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <link rel="icon" href="data:," />
+  <title>Boundary Lock Studio</title>
+  <link rel="stylesheet" href="./styles.css?v=4.5.0" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">LOCAL · DETERMINISTIC · NO AI</p>
+      <h1>Boundary Lock Studio</h1>
+    </div>
+    <div class="header-status">
+      <span id="privacyBadge" class="pill safe">Assets stay in this browser</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel left-panel" aria-label="Assets and workflow">
+      <section>
+        <div class="section-title"><span>01</span><h2>Source images</h2></div>
+        <label class="upload-card">
+          <input id="bannerInput" type="file" accept="image/*" />
+          <span class="upload-icon">B</span>
+          <span><strong>Banner image</strong><small id="bannerMeta">Demo banner · 1500 × 500</small></span>
+        </label>
+        <label class="upload-card profile-upload-card">
+          <input id="portraitInput" type="file" accept="image/*" />
+          <span class="upload-icon">P</span>
+          <span><strong>Select profile picture</strong><small id="portraitMeta">Choose an image, then crop it like X</small></span>
+        </label>
+        <div class="composition-switch" role="radiogroup" aria-label="Composition mode">
+          <button id="modeBanner" class="active" type="button">Banner → profile</button>
+          <button id="modePortrait" type="button">Set profile → build banner</button>
+        </div>
+        <div id="bannerQuickTools" class="quick-tools" aria-label="Banner quick tools">
+          <div class="quick-tools-label">
+            <strong>Banner position</strong>
+            <small id="bannerTransformStatus">Original banner · avatar only export is enough</small>
+          </div>
+          <div class="quick-tools-buttons">
+            <button id="mirrorBanner" class="quick-tool" type="button">Mirror</button>
+            <button id="flipBanner" class="quick-tool" type="button">Flip</button>
+            <button id="rotateBanner" class="quick-tool" type="button">Rotate 0°</button>
+            <button id="resetBannerTools" class="quick-tool danger" type="button">Reset</button>
+          </div>
+          <div class="quick-tools-buttons">
+            <button id="nudgeBannerLeft" class="quick-tool arrow" type="button" aria-label="Move banner left">←</button>
+            <button id="nudgeBannerUp" class="quick-tool arrow" type="button" aria-label="Move banner up">↑</button>
+            <button id="nudgeBannerDown" class="quick-tool arrow" type="button" aria-label="Move banner down">↓</button>
+            <button id="nudgeBannerRight" class="quick-tool arrow" type="button" aria-label="Move banner right">→</button>
+          </div>
+          <div class="quick-tools-buttons">
+            <label class="quick-zoom">Zoom <input id="bannerZoomInput" type="number" min="100" max="400" step="1" value="100" /><span>%</span></label>
+            <button id="zoomBannerOut" class="quick-tool" type="button">−</button>
+            <button id="zoomBannerIn" class="quick-tool" type="button">+</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="prioritySection">
+        <div class="section-title"><span>02</span><h2>Priority settings</h2></div>
+        
+        <div class="priority-group">
+          <label class="priority-option">
+            <input type="radio" name="priority" value="shared" checked />
+            <div class="priority-box">
+              <strong>Best shared (Recommended)</strong>
+              <small>Uses one compromise boundary alignment for both platforms.</small>
+            </div>
+          </label>
+          <label class="priority-option">
+            <input type="radio" name="priority" value="mobile" />
+            <div class="priority-box">
+              <strong>Mobile-perfect</strong>
+              <small>Targets the Android mobile-app profile position. Desktop may be misaligned.</small>
+            </div>
+          </label>
+          <label class="priority-option">
+            <input type="radio" name="priority" value="desktop" />
+            <div class="priority-box">
+              <strong>Desktop-perfect</strong>
+              <small>Targets the Desktop-web profile position. Android may be misaligned.</small>
+            </div>
+          </label>
+        </div>
+
+        <div id="cropBalanceSection" class="crop-balance-section" style="display:none">
+          <div class="crop-balance-head">
+            <strong>Crop position balance</strong>
+            <span id="cropBalanceValue" class="crop-balance-value">Auto</span>
+          </div>
+          <div class="crop-balance-endpoints">
+            <span>&#9670; Android</span>
+            <span>Desktop &#9670;</span>
+          </div>
+          <div class="crop-balance-track">
+            <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="0" />
+            <div id="autoWeightMarker" class="auto-weight-marker" title="Optimizer recommendation (A)"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+            <p class="crop-balance-hint">The yellow marker shows the automatic balance. Drag the thumb to favor Android or Desktop and update both previews live.</p>
+            <button id="resetCropBalance" class="quick-tool" type="button" style="display:none; flex-shrink:0">&#8635; Auto</button>
+          </div>
+        </div>
+
+        <p>Desktop and Android place the profile picture differently. A single pair may not line up perfectly on both.</p>
+        <p class="shared-warning" id="sharedWarning"><strong>Best shared</strong>: uses one compromise mapping for the two X layouts.</p>
+      </section>
+    </aside>
+
+    <section class="stage-column" aria-label="Live previews">
+      <div class="stage-toolbar">
+        <div>
+          <span class="live-dot"></span>
+          <strong>Live previews</strong>
+        </div>
+      </div>
+      <div class="previews-grid">
+        <div class="preview-card desktop-card">
+          <h3>Desktop Web Preview</h3>
+          <div class="canvas-wrapper">
+            <canvas id="desktopCanvas" width="1200" height="760"></canvas>
+          </div>
+        </div>
+        <div class="preview-card android-card">
+          <h3>Android App Preview</h3>
+          <div class="canvas-wrapper">
+            <canvas id="androidCanvas" width="914" height="880"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel right-panel" aria-label="Controls and export">
+      <section>
+        <div class="section-title"><span>03</span><h2>Preview options</h2></div>
+        <label>Account type
+          <select id="shapeSelect">
+            <option value="circle">Personal · circle</option>
+            <option value="rounded">Organization · rounded square</option>
+          </select>
+        </label>
+        <label>Theme
+          <select id="themeSelect">
+            <option value="dark">Dark · black padding</option>
+            <option value="light">Light · white padding</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="portraitControls" class="disabled-section">
+        <div class="section-title"><span>04</span><h2>Profile picture</h2></div>
+        <div class="profile-set-card">
+          <div id="profileSetIndicator" class="profile-set-indicator">No profile picture set</div>
+          <p id="profileSetHelp" class="control-help">Select an image. A familiar crop window will let you drag and zoom it before anything is applied.</p>
+          <button id="editProfilePicture" class="button primary full" type="button">Select profile picture</button>
+        </div>
+        <small id="linkedCoverageStatus" class="coverage-status">The profile remains unchanged after you press Apply</small>
+      </section>
+
+      <section id="continuationSection">
+        <div class="section-title"><span>05</span><h2>Missing-area continuation</h2></div>
+        <div class="cont-header">
+          <div class="cont-title-row">
+            <span class="cont-label">Extend features below banner edge</span>
+            <label class="cont-toggle-wrap">
+              <input id="continuationToggle" type="checkbox" checked />
+              <span class="cont-toggle-track"><span class="cont-toggle-thumb"></span></span>
+            </label>
+          </div>
+          <div class="cont-status-row">
+            <span id="continuationStatusDot" class="cont-dot idle"></span>
+            <span id="continuationStatus" class="cont-status-text">Detecting…</span>
+          </div>
+        </div>
+        <div class="cont-sensitivity">
+          <div class="cont-sens-head">
+            <span class="cont-sens-label">Detection sensitivity</span>
+            <span id="continuationSensValue" class="cont-sens-value">58%</span>
+          </div>
+          <input id="continuationSensitivity" type="range" min="10" max="95" step="1" value="58" class="cont-slider" />
+          <div class="cont-sens-ends">
+            <span>Conservative</span><span>Aggressive</span>
+          </div>
+        </div>
+        <p class="cont-hint">When the avatar overlaps the banner’s bottom edge, continuation detects straight features (lines, borders, geometry) crossing that boundary and extrapolates them into the virtual canvas below. Higher sensitivity catches more features but may introduce false positives on noisy images.</p>
+      </section>
+
+      <section class="export-section">
+        <div class="section-title"><span>06</span><h2>Export assets</h2></div>
+        <button id="exportAvatar" class="button primary full" type="button">Export avatar PNG</button>
+        <div id="adjustedBannerExportWrapper">
+          <button id="exportBanner" class="button secondary full" type="button">Export adjusted banner PNG</button>
+          <small id="exportHint" class="export-hint">Upload the adjusted banner PNG together with the avatar for Best shared alignment.</small>
+        </div>
+        <div class="button-row">
+          <button id="exportMetadata" class="button ghost" type="button">Project JSON</button>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="profileEditor" class="profile-editor" hidden role="dialog" aria-modal="true" aria-labelledby="profileEditorTitle">
+    <div class="profile-editor-backdrop"></div>
+    <section class="profile-editor-dialog">
+      <header class="profile-editor-header">
+        <button id="cancelProfileEditorTop" class="profile-editor-close" type="button" aria-label="Back">←</button>
+        <h2 id="profileEditorTitle">Edit media</h2>
+        <button id="applyProfilePicture" class="profile-apply" type="button">Apply</button>
+      </header>
+      <div class="profile-crop-stage">
+        <canvas id="profileCropCanvas" width="600" height="600" aria-label="Drag horizontally to reposition profile picture"></canvas>
+        <div class="profile-crop-ring" aria-hidden="true"></div>
+      </div>
+      <div class="profile-zoom-row">
+        <span aria-hidden="true">−</span>
+        <input id="profileCropZoom" type="range" min="100" max="1200" step="1" value="100" aria-label="Zoom profile picture" />
+        <span aria-hidden="true">＋</span>
+      </div>
+      <footer class="profile-editor-footer">
+        <button id="resetProfileCrop" class="button ghost" type="button">Reset</button>
+        <button id="cancelProfileEditor" class="button secondary" type="button">Cancel</button>
+      </footer>
+      <p class="profile-editor-hint">Drag to reposition the image without stretching it. Use the slider or mouse wheel to zoom. Apply locks the square exactly as shown.</p>
+    </section>
+  </div>
+
+  <canvas id="avatarCanvas" width="400" height="400" style="display: none;"></canvas>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js?v=4.5.0"></script>
+</body>
+</html>

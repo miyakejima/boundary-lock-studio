@@ -1,0 +1,27 @@
+# OS / editor state
+.DS_Store
+Thumbs.db
+.vs/
+.idea/
+*.suo
+*.user
+
+# Node
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Build / dist
+dist/
+build/
+
+# Logs
+*.log
+*.tmp
+
+# Environment
+.env
+.env.local
