@@ -7,7 +7,7 @@ import {
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.4.0";
+} from "./core.js?v=6.4.1";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
@@ -651,3 +651,14 @@ function initEvents() {
 state.sourceBanner = createDefaultBanner();
 initEvents();
 scheduleRender();
+
+// Load authentic default demo banner (vegaz.png)
+if (typeof Image !== "undefined") {
+  const defaultImg = new Image();
+  defaultImg.onload = () => {
+    state.sourceBanner = defaultImg;
+    state.bannerName = "vegaz.png";
+    scheduleRender();
+  };
+  defaultImg.src = "./assets/default-banner.png?v=6.4.1";
+}
