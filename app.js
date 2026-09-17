@@ -1019,7 +1019,12 @@ function initEvents() {
     viewBoth.classList.toggle("active", mode === "both");
     viewDesktop.classList.toggle("active", mode === "desktop");
     viewMobile.classList.toggle("active", mode === "mobile");
+    viewBoth.setAttribute("aria-selected", mode === "both" ? "true" : "false");
+    viewDesktop.setAttribute("aria-selected", mode === "desktop" ? "true" : "false");
+    viewMobile.setAttribute("aria-selected", mode === "mobile" ? "true" : "false");
+    scheduleRender();
   };
+
 
   viewBoth.addEventListener("click", () => setView("both"));
   viewDesktop.addEventListener("click", () => setView("desktop"));

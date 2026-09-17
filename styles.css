@@ -117,7 +117,7 @@
 
 html, body {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--bg);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -125,9 +125,10 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  overflow: hidden;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
+
 
 /* Subtle Anti-Glare Studio Noise Texture */
 body::before {
@@ -321,20 +322,22 @@ body::before {
   position: relative;
   display: flex;
   width: 100%;
-  min-height: calc(100vh - 52px);
+  height: calc(100vh - 52px);
+  max-height: calc(100vh - 52px);
   padding-top: 52px;
   background: transparent;
+  overflow: hidden;
   z-index: 2;
 }
 
 /* ── Studio Sidebar (Left Deck) ───────────────────────────────── */
 .studio-sidebar {
-  width: 360px;
+  width: 350px;
   min-width: 330px;
-  max-width: 370px;
-  height: calc(100vh - 52px);
-  position: sticky;
-  top: 52px;
+  max-width: 360px;
+  height: 100%;
+  position: relative;
+  top: 0;
   display: flex;
   flex-direction: column;
   background: var(--dock-bg);
@@ -344,10 +347,11 @@ body::before {
   box-shadow: 4px 0 24px -4px rgba(0, 0, 0, 0.25);
   overflow-y: auto;
   z-index: 50;
-  padding: 16px 18px 24px;
-  gap: 16px;
+  padding: 16px 16px 20px;
+  gap: 14px;
   transition: background 0.25s ease, border-color 0.25s ease;
 }
+
 
 .studio-sidebar::-webkit-scrollbar {
   width: 4px;
@@ -893,37 +897,55 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: rgba(239, 68, 68, 0.08);
 }
 
-/* ── Studio Stage (Right Previews Stack) ──────────────────────── */
+/* ── Studio Stage (Right Canvas Area - Zero Scroll at 100% Zoom) ── */
 .studio-stage {
   flex: 1;
   min-width: 0;
-  min-height: calc(100vh - 52px);
-  padding: 24px 32px 80px;
+  height: 100%;
+  padding: 16px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  overflow-y: auto;
+  justify-content: center;
+  overflow: hidden;
   background: transparent;
 }
 
 .views-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
   width: 100%;
-  max-width: 760px;
+  max-width: 1380px;
   margin: 0 auto;
-  transition: all 0.25s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* View Modes */
-.views-container.view-both .card.desktop-view,
-.views-container.view-both .card.mobile-view {
+/* ── Mode 1: BOTH (Side-by-side, Desktop has significantly more LENGTH, Mobile is compact, zero scroll) ── */
+.views-container.view-both {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+}
+
+.views-container.view-both .card.desktop-view {
+  flex: 1.55;
+  max-width: 840px;
+  min-width: 480px;
   display: flex;
-  width: 100%;
-  max-width: 760px;
+}
+
+.views-container.view-both .card.mobile-view {
+  flex: 0.9;
+  max-width: 450px;
+  min-width: 300px;
+  display: flex;
+}
+
+/* ── Mode 2: DESKTOP ONLY (Focus mode, MUCH LARGER and main view) ── */
+.views-container.view-desktop {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .views-container.view-desktop .card.mobile-view {
@@ -933,7 +955,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .views-container.view-desktop .card.desktop-view {
   display: flex;
   width: 100%;
-  max-width: 860px;
+  max-width: 1160px;
+}
+
+/* ── Mode 3: MOBILE ONLY (Focus mode, MUCH LARGER and main view) ── */
+.views-container.view-mobile {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .views-container.view-mobile .card.desktop-view {
@@ -945,6 +974,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   width: 100%;
   max-width: 620px;
 }
+
 
 /* Preview Card */
 .card {

@@ -23,15 +23,20 @@
 
 ## Preview
 
-### Studio Workstation (AMOLED Dark Theme)
-*Professional two-column workstation: permanent left-hand creative tool deck with zero canvas overlap, paired with vertically stacked 1:1 identical-scale Desktop Web and Mobile App previews.*
+### Studio Workstation (AMOLED Dark Theme - Zero Scroll)
+*Professional two-column workstation: permanent left-hand creative tool deck with zero canvas overlap, paired with a wide Desktop Web card ($840\text{px}$) and compact Mobile App card ($450\text{px}$) side-by-side with zero vertical page scrolling at 100% zoom.*
 
-![headerlock Studio Workstation Dark Theme](docs/screenshots/workstation-both-dark.png)
+![headerlock Studio Workstation Dark Theme](docs/screenshots/workstation-both-noscroll.png)
 
 ### Studio Workstation (Linen Light Theme)
 *High-contrast light workstation layout with dedicated Tone & Color adjustments, live dual-seam score badge (`Desktop: 88% · Mobile: 85%`), and authentic X profile geometry.*
 
-![headerlock Studio Workstation Light Theme](docs/screenshots/workstation-both-light.png)
+![headerlock Studio Workstation Light Theme](docs/screenshots/workstation-light-noscroll.png)
+
+### Focused View Modes (Desktop & Mobile)
+*Need to inspect fine details? Click `Desktop` or `Mobile` in the header switcher (`[Desktop] [Both] [Mobile]`) to instantly isolate and expand either card to a massive high-resolution focus view ($1160\text{px}$ for Desktop, $620\text{px}$ for Mobile).*
+
+![headerlock Desktop Focus Mode](docs/screenshots/workstation-desktop-focus.png)
 
 ### Creative FX & Style Presets
 *Real-time 3×3 Sobel convolution kernel (find edges), Sony Vegas negative color invert, analog film grain, vignette, and instant Cyberpunk/Noir presets—with 100% boundary lock integrity preserved.*
@@ -55,9 +60,10 @@ Because the two platforms place the avatar in different locations relative to th
 ## Key Features
 
 - **Studio Workstation Architecture**:
+  - **Zero Page Scrolling**: At 100% zoom, the entire application fits cleanly into the viewport with zero vertical or horizontal window scrolling.
   - **Permanent Left Creative Deck**: Dedicated control sidebar for adjustments, creative shaders, transform tools, and dual-seam balancing. Never covers the artwork while you tune sliders or toggles.
-  - **1:1 Vertical Comparison Stack**: Desktop Web ($1500 \times 500$) and Mobile App ($914 \times 305$) previews are rendered at the exact same 3:1 width and scale. Look straight down to compare avatar boundary shifts with zero distortion.
-  - **Single-View Focus Modes**: 1-click toggles in the header to isolate `Desktop Only` or `Mobile Only` when needed.
+  - **Differentiated Canvas Lengths**: In `Both` mode, Desktop Web is rendered with long horizontal span ($840\text{px}$) while Mobile App sits alongside as a compact phone frame ($450\text{px}$).
+  - **Center-Balanced Focus Modes**: Clean `[Desktop]` `[Both]` `[Mobile]` switcher in the header. Activating `Desktop` or `Mobile` isolates that view and expands it into an expansive focal display ($1160\text{px}$ / $620\text{px}$) with smooth transitions.
 - **Tone & Color Adjustments**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint with live readouts and double-click reset.
 - **Creative FX & Shaders**: Sony Vegas Negative Invert, 3×3 Sobel convolution kernel (Find Edges / Contour Overlay with adjustable boost), Analog Film Grain, and Vignette.
 - **1-Click Style Presets**: Cyberpunk, Noir, Matrix, Sony Vegas, and Default.
