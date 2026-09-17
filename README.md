@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="https://miyakejima.github.io/headerlock/"><strong>🚀 Launch Web App</strong></a> ·
+  <a href="https://miyakejima.github.io/headerlock/"><strong>Launch Web App</strong></a> ·
   <a href="#interactive-demo">Interactive Demo</a> ·
   <a href="#why-this-exists">Why This Exists</a> ·
   <a href="#studio-tour">Studio Tour</a> ·
@@ -22,7 +22,7 @@
 
 <p align="center">
   <em>Free, full-featured client-side creative studio. Open and use directly in your browser:</em><br>
-  👉 <a href="https://miyakejima.github.io/headerlock/"><strong>https://miyakejima.github.io/headerlock/</strong></a>
+  <a href="https://miyakejima.github.io/headerlock/"><strong>https://miyakejima.github.io/headerlock/</strong></a>
 </p>
 
 ---
@@ -130,7 +130,7 @@ See [`ANDROID_REVERSE_ENGINEERING.md`](ANDROID_REVERSE_ENGINEERING.md) for the f
 
 ### Open in Browser (Zero Install)
 Launch immediately in your browser:  
-👉 **[https://miyakejima.github.io/headerlock/](https://miyakejima.github.io/headerlock/)**
+[https://miyakejima.github.io/headerlock/](https://miyakejima.github.io/headerlock/)
 
 ### Run Locally (Optional)
 No build step or `npm install` needed. Double-click `launch.bat` or run:
