@@ -1,18 +1,8 @@
-/* headerlock · Minimalist Design System (Studio Gradients & Anti-Glare Texture) */
+/* headerlock · Minimalist Design System (Cohesive Gradients & Anti-Glare Studio Texture) */
 :root {
   --bg: #07080b;
-  --header-bg: rgba(10, 11, 15, 0.82);
-  --header-grad-top: rgba(18, 20, 28, 0.88);
-  --header-grad-bottom: rgba(10, 11, 15, 0.82);
-  --border-highlight: rgba(255, 255, 255, 0.08);
-  --status-chip-bg: rgba(255, 255, 255, 0.035);
-  --status-chip-border: rgba(255, 255, 255, 0.08);
-  --brand-icon-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(99, 102, 241, 0.08));
-  --brand-icon-border: rgba(59, 130, 246, 0.28);
-  --brand-icon-color: #60a5fa;
-  --brand-icon-fill: rgba(7, 8, 11, 0.9);
-  
-  --stage-bg: #07080b;
+  --header-bg: rgba(7, 8, 11, 0.65);
+  --stage-bg: transparent;
   --glow-top: rgba(59, 130, 246, 0.09);
   --glow-center: rgba(99, 102, 241, 0.04);
   --glow-bottom: rgba(139, 92, 246, 0.04);
@@ -67,23 +57,13 @@
 
 [data-theme="light"] {
   --bg: #f8fafc;
-  --header-bg: rgba(255, 255, 255, 0.88);
-  --header-grad-top: rgba(255, 255, 255, 0.95);
-  --header-grad-bottom: rgba(248, 250, 252, 0.9);
-  --border-highlight: rgba(255, 255, 255, 0.95);
-  --status-chip-bg: rgba(15, 23, 42, 0.035);
-  --status-chip-border: rgba(15, 23, 42, 0.08);
-  --brand-icon-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.06));
-  --brand-icon-border: rgba(37, 99, 235, 0.22);
-  --brand-icon-color: #2563eb;
-  --brand-icon-fill: #ffffff;
-
-  --stage-bg: #f8fafc;
+  --header-bg: rgba(248, 250, 252, 0.7);
+  --stage-bg: transparent;
   --glow-top: rgba(99, 102, 241, 0.045);
   --glow-center: rgba(59, 130, 246, 0.02);
   --glow-bottom: rgba(14, 165, 233, 0.025);
-  --pattern-dot: rgba(15, 23, 42, 0.038); /* softened, non-distracting paper texture */
-  --noise-opacity: 0.016; /* featherweight, matte anti-glare without buzz */
+  --pattern-dot: rgba(15, 23, 42, 0.038); /* very minimal soft linen texture */
+  --noise-opacity: 0.016; /* featherweight, eliminates glare without grain buzz */
 
   --card-bg: linear-gradient(180deg, #ffffff 0%, #fbfcfd 100%);
   --card-border: rgba(15, 23, 42, 0.09);
@@ -134,10 +114,19 @@
   padding: 0;
 }
 
+/* Seamless full-window background flowing continuously from pixel Y=0 */
 html, body {
   width: 100%;
-  height: 100%;
-  background: var(--bg);
+  min-height: 100%;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1300px 750px at 50% 0px, var(--glow-top), transparent 75%),
+    radial-gradient(1500px 900px at 50% 50%, var(--glow-center), transparent 85%),
+    radial-gradient(1200px 600px at 50% 100%, var(--glow-bottom), transparent 75%),
+    radial-gradient(var(--pattern-dot) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 24px 24px;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -159,82 +148,40 @@ html, body {
   justify-content: space-between;
   padding: 0 20px;
   background-color: var(--header-bg);
-  background-image:
-    radial-gradient(700px 52px at 15% 0%, var(--glow-top), transparent 75%),
-    linear-gradient(180deg, var(--header-grad-top) 0%, var(--header-grad-bottom) 100%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background-image: radial-gradient(var(--pattern-dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
-  box-shadow: inset 0 1px 0 var(--border-highlight), 0 4px 24px -2px rgba(0, 0, 0, 0.2);
   z-index: 100;
-  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
   flex: 1;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   text-decoration: none;
   color: var(--text-primary);
-  padding: 2px 6px;
-  margin-left: -6px;
-  border-radius: 8px;
-  transition: all 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .brand:hover {
-  background: var(--control-hover);
-}
-
-.brand-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--brand-icon-bg);
-  border: 1px solid var(--brand-icon-border);
-  color: var(--brand-icon-color);
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.brand:hover .brand-icon {
-  transform: scale(1.05);
-  box-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
+  opacity: 0.8;
 }
 
 .brand-text {
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.035em;
-  background: linear-gradient(180deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: all 0.25s ease;
-}
-
-.brand-badge {
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  font-weight: 600;
-  color: var(--brand-icon-color);
-  background: var(--brand-icon-bg);
-  border: 1px solid var(--brand-icon-border);
-  padding: 1.5px 5.5px;
-  border-radius: 4px;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.12);
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  transition: color 0.25s ease;
 }
 
 /* Segmented View Switcher */
@@ -288,65 +235,6 @@ html, body {
   flex: 1;
 }
 
-/* Header Status Telemetry Chip */
-.header-status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 26px;
-  padding: 0 10px;
-  background: var(--status-chip-bg);
-  border: 1px solid var(--status-chip-border);
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--text-muted);
-  margin-right: 4px;
-  user-select: none;
-  transition: all 0.2s ease;
-}
-
-.header-status-chip:hover {
-  border-color: var(--border-strong);
-  background: var(--control-hover);
-}
-
-.status-pulse-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
-  animation: status-pulse 2.8s infinite ease-in-out;
-}
-
-@keyframes status-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.85); }
-}
-
-.status-text {
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: -0.01em;
-}
-
-.status-sep {
-  color: var(--text-dim);
-  opacity: 0.7;
-}
-
-.status-meta {
-  color: var(--text-muted);
-  font-size: 10px;
-}
-
-@media (max-width: 960px) {
-  .header-status-chip {
-    display: none;
-  }
-}
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -395,15 +283,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--stage-bg);
-  background-image:
-    radial-gradient(1300px 750px at 50% -100px, var(--glow-top), transparent 75%),
-    radial-gradient(1500px 900px at 50% 50%, var(--glow-center), transparent 85%),
-    radial-gradient(1200px 600px at 50% 100%, var(--glow-bottom), transparent 75%),
-    radial-gradient(var(--pattern-dot) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 24px 24px;
-  background-position: 0 0, 0 0, 0 0, 0 0;
-  transition: background 0.3s ease;
+  background: transparent;
 }
 
 /* Subtle organic anti-glare studio noise texture */

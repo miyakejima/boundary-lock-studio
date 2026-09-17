@@ -7,7 +7,7 @@ import {
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.4.1";
+} from "./core.js?v=6.4.2";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
@@ -323,13 +323,18 @@ function renderMobile() {
   // 1. Draw banner scaled to 914 × 305 directly from dedicated bannerBuffer
   mobileCtx.drawImage(bannerBuffer, 0, 0, 1500, 500, 0, 0, w, bannerH);
 
-  // 2. Top bar vignette & mobile controls
-  mobileCtx.fillStyle = isLight ? "rgba(255, 255, 255, 0.65)" : "rgba(0, 0, 0, 0.35)";
-  mobileCtx.fillRect(0, 0, w, 80);
-
-  mobileCtx.fillStyle = isLight ? "#0f1419" : "#ffffff";
-  mobileCtx.font = "700 28px 'Inter', -apple-system, sans-serif";
-  mobileCtx.fillText("‹", 32, 54);
+  // 2. Mobile back button (clean Twitter/X floating pill)
+  mobileCtx.save();
+  mobileCtx.beginPath();
+  mobileCtx.arc(50, 46, 20, 0, Math.PI * 2);
+  mobileCtx.fillStyle = "rgba(0, 0, 0, 0.55)";
+  mobileCtx.fill();
+  mobileCtx.fillStyle = "#ffffff";
+  mobileCtx.font = "700 24px 'Inter', -apple-system, sans-serif";
+  mobileCtx.textAlign = "center";
+  mobileCtx.textBaseline = "middle";
+  mobileCtx.fillText("‹", 48, 44);
+  mobileCtx.restore();
 
   // 3. Profile metadata below banner
   const textY = bannerH + 130;
@@ -660,5 +665,5 @@ if (typeof Image !== "undefined") {
     state.bannerName = "vegaz.png";
     scheduleRender();
   };
-  defaultImg.src = "./assets/default-banner.png?v=6.4.1";
+  defaultImg.src = "./assets/default-banner.png?v=6.4.2";
 }
