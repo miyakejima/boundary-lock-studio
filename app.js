@@ -21,6 +21,40 @@ const state = {
   shape: "circle",       // "circle" | "square"
   extend: true,          // Extend banner features below the boundary
   view: "both",          // "both" | "desktop" | "mobile"
+  
+  // Transforms
+  transform: {
+    mirrorX: false,
+    flipY: false,
+    rotation: 0,         // 0 | 90 | 180 | 270
+  },
+
+  // Tone & Color Adjustments
+  adjust: {
+    brightness: 0,       // -100 to 100
+    contrast: 0,         // -100 to 100
+    saturation: 0,       // -100 to 100
+    hue: 0,              // -180 to 180
+    warmth: 0,           // -100 to 100
+  },
+
+  // Creative FX & Convolution Kernels
+  effects: {
+    invert: false,       // Sony Vegas style color negative
+    findEdges: false,    // 3x3 Sobel convolution kernel
+    edgeMode: "outline", // "outline" | "overlay"
+    edgeBoost: 2,        // 1 to 5
+    grain: 0,            // 0 to 100
+    vignette: 0,         // 0 to 100
+    activePreset: "default",
+  },
+
+  // Crop Balance (Shared Mode)
+  cropBalance: {
+    manualWeight: null,  // null = auto optimizer, 0.0 to 1.0 = manual
+    autoWeight: 0.025,
+  },
+
   bannerData: null,      // ImageData (1500 × 500)
   sceneData: null,       // Extended ImageData (1500 × sceneH) for seamless avatar sampling
   sceneH: 500,           // Effective scene height (500 to 800)
@@ -116,6 +150,134 @@ function createDefaultBanner() {
   return canvas;
 }
 
+// ── Image Processing Helpers & Kernel Filters ──────────────────
+const STYLE_PRESETS = {
+  default: {
+    adjust: { brightness: 0, contrast: 0, saturation: 0, hue: 0, warmth: 0 },
+    effects: { invert: false, findEdges: false, edgeMode: "outline", edgeBoost: 2, grain: 0, vignette: 0 },
+  },
+  vegas: {
+    adjust: { brightness: 0, contrast: 25, saturation: 10, hue: 0, warmth: 0 },
+    effects: { invert: true, findEdges: false, edgeMode: "outline", edgeBoost: 2, grain: 0, vignette: 15 },
+  },
+  cyberpunk: {
+    adjust: { brightness: 5, contrast: 25, saturation: 40, hue: -45, warmth: -15 },
+    effects: { invert: false, findEdges: false, edgeMode: "outline", edgeBoost: 2, grain: 10, vignette: 25 },
+  },
+  noir: {
+    adjust: { brightness: -5, contrast: 40, saturation: -100, hue: 0, warmth: 0 },
+    effects: { invert: false, findEdges: false, edgeMode: "outline", edgeBoost: 2, grain: 20, vignette: 40 },
+  },
+  matrix: {
+    adjust: { brightness: -10, contrast: 30, saturation: 25, hue: 85, warmth: -20 },
+    effects: { invert: false, findEdges: false, edgeMode: "outline", edgeBoost: 2, grain: 12, vignette: 25 },
+  },
+};
+
+// Linearly interpolates between the two platform source mappings for crop balance
+function interpolateSourceMappings(androidMapping, desktopMapping, weight) {
+  const w = Math.min(1, Math.max(0, weight));
+  return {
+    centerX: androidMapping.centerX * (1 - w) + desktopMapping.centerX * w,
+    centerY: androidMapping.centerY * (1 - w) + desktopMapping.centerY * w,
+    radiusX: androidMapping.radiusX * (1 - w) + desktopMapping.radiusX * w,
+    radiusY: androidMapping.radiusY * (1 - w) + desktopMapping.radiusY * w,
+  };
+}
+
+// 3×3 Sobel Convolution Kernel for high-performance edge detection
+function applySobelConvolution(imgData, boost = 2, mode = "outline") {
+  const w = imgData.width;
+  const h = imgData.height;
+  const d = imgData.data;
+  const gray = new Uint8Array(w * h);
+
+  // Fast luminance pass
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+    gray[p] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
+  }
+
+  for (let y = 1; y < h - 1; y++) {
+    const rowAbove = (y - 1) * w;
+    const rowCurrent = y * w;
+    const rowBelow = (y + 1) * w;
+
+    for (let x = 1; x < w - 1; x++) {
+      // Horizontal gradient Gx
+      const gx = (
+        - gray[rowAbove + x - 1] + gray[rowAbove + x + 1]
+        - 2 * gray[rowCurrent + x - 1] + 2 * gray[rowCurrent + x + 1]
+        - gray[rowBelow + x - 1] + gray[rowBelow + x + 1]
+      );
+
+      // Vertical gradient Gy
+      const gy = (
+        - gray[rowAbove + x - 1] - 2 * gray[rowAbove + x] - gray[rowAbove + x + 1]
+        + gray[rowBelow + x - 1] + 2 * gray[rowBelow + x] + gray[rowBelow + x + 1]
+      );
+
+      const mag = Math.min(255, (Math.abs(gx) + Math.abs(gy)) * boost);
+      const idx = (rowCurrent + x) * 4;
+
+      if (mode === "outline") {
+        d[idx] = mag;
+        d[idx + 1] = mag;
+        d[idx + 2] = mag;
+      } else {
+        d[idx] = Math.min(255, d[idx] + mag * 0.7);
+        d[idx + 1] = Math.min(255, d[idx + 1] + mag * 0.7);
+        d[idx + 2] = Math.min(255, d[idx + 2] + mag * 0.7);
+      }
+    }
+  }
+}
+
+// Analog 35mm film noise
+function applyFilmGrain(imgData, amount) {
+  if (amount <= 0) return;
+  const d = imgData.data;
+  const len = d.length;
+  const intensity = (amount / 100) * 36;
+  for (let i = 0; i < len; i += 4) {
+    const noise = (Math.random() - 0.5) * intensity;
+    d[i] = Math.min(255, Math.max(0, d[i] + noise));
+    d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + noise));
+    d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + noise));
+  }
+}
+
+// Cinematic radial vignette
+function applyVignette(ctx, width, height, amount) {
+  if (amount <= 0) return;
+  const radius = Math.hypot(width, height) / 2;
+  const grad = ctx.createRadialGradient(
+    width / 2, height / 2, radius * 0.35,
+    width / 2, height / 2, radius
+  );
+  const alpha = (amount / 100) * 0.85;
+  grad.addColorStop(0, "rgba(0, 0, 0, 0)");
+  grad.addColorStop(0.65, `rgba(0, 0, 0, ${alpha * 0.4})`);
+  grad.addColorStop(1, `rgba(0, 0, 0, ${alpha})`);
+  ctx.save();
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
+// Warm / Cool tint
+function applyWarmth(ctx, width, height, warmth) {
+  if (warmth === 0) return;
+  ctx.save();
+  ctx.globalCompositeOperation = "color";
+  if (warmth > 0) {
+    ctx.fillStyle = `rgba(255, 165, 30, ${Math.min(0.5, (warmth / 100) * 0.4)})`;
+  } else {
+    ctx.fillStyle = `rgba(30, 140, 255, ${Math.min(0.5, (Math.abs(warmth) / 100) * 0.4)})`;
+  }
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+}
+
 // ── Render Working Banner & Extended Scene ─────────────────────
 function updateWorkingBanner() {
   const width = 1500;
@@ -127,22 +289,26 @@ function updateWorkingBanner() {
   const img = state.sourceBanner;
   if (!img) return;
 
-  // Compute cover scale
+  // Compute cover scale considering rotation
   const imgW = img.width || img.naturalWidth || width;
   const imgH = img.height || img.naturalHeight || bannerH;
-  const baseScale = Math.max(width / imgW, bannerH / imgH);
+  const isRotated90 = state.transform.rotation === 90 || state.transform.rotation === 270;
+  const visualW = isRotated90 ? imgH : imgW;
+  const visualH = isRotated90 ? imgW : imgH;
+
+  const baseScale = Math.max(width / visualW, bannerH / visualH);
   const scale = baseScale * state.zoom;
 
   const drawW = imgW * scale;
   const drawH = imgH * scale;
 
   // Center + pan
-  const drawX = (width - drawW) / 2 + state.panX;
-  const drawY = (bannerH - drawH) / 2 + state.panY;
+  const centerX = width / 2 + state.panX;
+  const centerY = bannerH / 2 + state.panY;
 
   // Determine effective scene height for avatar sampling (up to 800 to fully cover lower avatar)
-  const imgBottom = Math.ceil(drawY + drawH);
-  const sceneH = Math.max(500, Math.min(800, imgBottom));
+  const visualBottom = centerY + (visualH * scale) / 2;
+  const sceneH = Math.max(500, Math.min(800, Math.ceil(visualBottom)));
   state.sceneH = sceneH;
 
   // Render extended scene
@@ -150,7 +316,69 @@ function updateWorkingBanner() {
   sceneBuffer.height = sceneH;
   sceneBufferCtx.fillStyle = "#000000";
   sceneBufferCtx.fillRect(0, 0, width, sceneH);
-  sceneBufferCtx.drawImage(img, drawX, drawY, drawW, drawH);
+
+  sceneBufferCtx.save();
+  sceneBufferCtx.translate(centerX, centerY);
+
+  // Rotation
+  if (state.transform.rotation !== 0) {
+    sceneBufferCtx.rotate((state.transform.rotation * Math.PI) / 180);
+  }
+
+  // Mirror & Flip
+  const scaleX = state.transform.mirrorX ? -1 : 1;
+  const scaleY = state.transform.flipY ? -1 : 1;
+  sceneBufferCtx.scale(scaleX, scaleY);
+
+  // Hardware-accelerated CSS filter string
+  const filterParts = [];
+  if (state.adjust.brightness !== 0) {
+    filterParts.push(`brightness(${Math.max(0, 100 + state.adjust.brightness)}%)`);
+  }
+  if (state.adjust.contrast !== 0) {
+    filterParts.push(`contrast(${Math.max(0, 100 + state.adjust.contrast)}%)`);
+  }
+  if (state.adjust.saturation !== 0) {
+    filterParts.push(`saturate(${Math.max(0, 100 + state.adjust.saturation)}%)`);
+  }
+  if (state.adjust.hue !== 0) {
+    filterParts.push(`hue-rotate(${state.adjust.hue}deg)`);
+  }
+  if (state.effects.invert) {
+    filterParts.push("invert(100%)");
+  }
+
+  if (filterParts.length > 0) {
+    sceneBufferCtx.filter = filterParts.join(" ");
+  }
+
+  sceneBufferCtx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+  sceneBufferCtx.restore();
+
+  sceneBufferCtx.filter = "none";
+
+  // Warmth / Temperature tint
+  if (state.adjust.warmth !== 0) {
+    applyWarmth(sceneBufferCtx, width, sceneH, state.adjust.warmth);
+  }
+
+  // Vignette
+  if (state.effects.vignette > 0) {
+    applyVignette(sceneBufferCtx, width, sceneH, state.effects.vignette);
+  }
+
+  // Sobel convolution & Film grain pass
+  if (state.effects.findEdges || state.effects.grain > 0) {
+    const imgData = sceneBufferCtx.getImageData(0, 0, width, sceneH);
+    if (state.effects.findEdges) {
+      applySobelConvolution(imgData, state.effects.edgeBoost, state.effects.edgeMode);
+    }
+    if (state.effects.grain > 0) {
+      applyFilmGrain(imgData, state.effects.grain);
+    }
+    sceneBufferCtx.putImageData(imgData, 0, 0);
+  }
+
   state.sceneData = sceneBufferCtx.getImageData(0, 0, width, sceneH);
 
   // Render standard 1500 × 500 banner (for export & desktop banner preview)
@@ -184,7 +412,12 @@ function updateAvatar() {
       secondaryMapping: dMap,
       pageColor: state.theme === "light" ? [255, 255, 255] : [0, 0, 0],
     });
-    mapping = opt.mapping || mMap;
+    state.cropBalance.autoWeight = opt.equivalentWeight || 0.025;
+    if (state.cropBalance.manualWeight !== null) {
+      mapping = interpolateSourceMappings(mMap, dMap, state.cropBalance.manualWeight);
+    } else {
+      mapping = opt.mapping || mMap;
+    }
   }
 
   // Feature continuation: active if extend is enabled and scene reaches bottom of image
@@ -509,6 +742,118 @@ async function loadBannerFile(file) {
   }
 }
 
+// ── Rail & Flyout State and UI Sync Helpers ───────────────────
+let activeRailTab = null;
+
+function updateRailIndicators() {
+  const t = state.transform;
+  const isTransformActive = t.mirrorX || t.flipY || t.rotation !== 0;
+  $("dotTransform")?.classList.toggle("active", isTransformActive);
+
+  const a = state.adjust;
+  const isAdjustActive = a.brightness !== 0 || a.contrast !== 0 || a.saturation !== 0 || a.hue !== 0 || a.warmth !== 0;
+  $("dotAdjust")?.classList.toggle("active", isAdjustActive);
+
+  const fx = state.effects;
+  const isFxActive = fx.invert || fx.findEdges || fx.grain > 0 || fx.vignette > 0 || fx.activePreset !== "default";
+  $("dotFx")?.classList.toggle("active", isFxActive);
+
+  const isBalanceActive = state.target === "shared" && state.cropBalance.manualWeight !== null;
+  $("dotBalance")?.classList.toggle("active", isBalanceActive);
+}
+
+function syncAdjustUI() {
+  const a = state.adjust;
+  const b = $("sliderBrightness");
+  if (b) {
+    b.value = String(a.brightness);
+    $("valBrightness").textContent = a.brightness > 0 ? `+${a.brightness}%` : `${a.brightness}%`;
+  }
+  const c = $("sliderContrast");
+  if (c) {
+    c.value = String(a.contrast);
+    $("valContrast").textContent = a.contrast > 0 ? `+${a.contrast}%` : `${a.contrast}%`;
+  }
+  const s = $("sliderSaturation");
+  if (s) {
+    s.value = String(a.saturation);
+    $("valSaturation").textContent = a.saturation > 0 ? `+${a.saturation}%` : `${a.saturation}%`;
+  }
+  const h = $("sliderHue");
+  if (h) {
+    h.value = String(a.hue);
+    $("valHue").textContent = `${a.hue}°`;
+  }
+  const w = $("sliderWarmth");
+  if (w) {
+    w.value = String(a.warmth);
+    $("valWarmth").textContent = a.warmth > 0 ? `+${a.warmth}%` : `${a.warmth}%`;
+  }
+}
+
+function syncFxUI() {
+  const fx = state.effects;
+  const inv = $("switchInvert");
+  if (inv) inv.checked = fx.invert;
+
+  const ed = $("switchEdges");
+  if (ed) ed.checked = fx.findEdges;
+
+  const edWrap = $("edgeOptionsWrap");
+  if (edWrap) edWrap.hidden = !fx.findEdges;
+
+  $("edgeModeOutline")?.classList.toggle("active", fx.edgeMode === "outline");
+  $("edgeModeOverlay")?.classList.toggle("active", fx.edgeMode === "overlay");
+
+  const bst = $("sliderEdgeBoost");
+  if (bst) {
+    bst.value = String(fx.edgeBoost);
+    $("valEdgeBoost").textContent = `${fx.edgeBoost}×`;
+  }
+
+  const gr = $("sliderGrain");
+  if (gr) {
+    gr.value = String(fx.grain);
+    $("valGrain").textContent = `${fx.grain}%`;
+  }
+
+  const vg = $("sliderVignette");
+  if (vg) {
+    vg.value = String(fx.vignette);
+    $("valVignette").textContent = `${fx.vignette}%`;
+  }
+
+  // Presets pills active state
+  document.querySelectorAll(".preset-pill").forEach((pill) => {
+    pill.classList.toggle("active", pill.dataset.preset === fx.activePreset);
+  });
+}
+
+function updateBalanceUI() {
+  const isShared = state.target === "shared";
+  const sharedActive = $("balanceSharedActive");
+  const sharedInactive = $("balanceSharedInactive");
+  if (sharedActive && sharedInactive) {
+    sharedActive.hidden = !isShared;
+    sharedInactive.hidden = isShared;
+  }
+  const slider = $("cropBalanceSlider");
+  const statusBadge = $("cropBalanceStatus");
+  if (slider && statusBadge) {
+    if (state.cropBalance.manualWeight !== null) {
+      const pct = Math.round(state.cropBalance.manualWeight * 100);
+      slider.value = String(pct);
+      statusBadge.textContent = `Manual · ${pct}%`;
+      statusBadge.style.color = "var(--text-primary)";
+    } else {
+      const autoPct = (state.cropBalance.autoWeight * 100).toFixed(1);
+      slider.value = String(Math.round(state.cropBalance.autoWeight * 100));
+      statusBadge.textContent = `Auto · ${autoPct}%`;
+      statusBadge.style.color = "var(--text-secondary)";
+    }
+  }
+}
+
 // ── Initialize Event Listeners ─────────────────────────────────
 function initEvents() {
   // Apply saved theme on boot
@@ -557,6 +902,8 @@ function initEvents() {
     targetShared.classList.toggle("active", tgt === "shared");
     targetDesktop.classList.toggle("active", tgt === "desktop");
     targetMobile.classList.toggle("active", tgt === "mobile");
+    updateBalanceUI();
+    updateRailIndicators();
     scheduleRender();
   };
 
@@ -616,7 +963,7 @@ function initEvents() {
   extendOn.addEventListener("click", () => setExtend(true));
   extendOff.addEventListener("click", () => setExtend(false));
 
-  // Reset Button
+  // Reset Bottom Dock Button (Pan & Zoom only)
   $("resetBtn").addEventListener("click", () => {
     state.zoom = 1.0;
     state.panX = 0;
@@ -628,6 +975,323 @@ function initEvents() {
     zoomValue.textContent = "100%";
     scheduleRender();
     showToast("Reset pan & zoom");
+  });
+
+  // ── Left Tool Rail & Attached Flyout Controller ─────────────
+  const railBtns = {
+    transform: $("railBtnTransform"),
+    adjust: $("railBtnAdjust"),
+    fx: $("railBtnFx"),
+    balance: $("railBtnBalance"),
+  };
+  const flyoutSections = {
+    transform: $("sectionTransform"),
+    adjust: $("sectionAdjust"),
+    fx: $("sectionFx"),
+    balance: $("sectionBalance"),
+  };
+  const railFlyout = $("railFlyout");
+  const flyoutTitle = $("flyoutTitle");
+  const flyoutBadge = $("flyoutBadge");
+  const flyoutCloseBtn = $("flyoutCloseBtn");
+
+  const closeRailFlyout = () => {
+    activeRailTab = null;
+    railFlyout.hidden = true;
+    Object.values(railBtns).forEach((b) => b?.classList.remove("active"));
+  };
+
+  const openRailTab = (tab) => {
+    if (activeRailTab === tab) {
+      closeRailFlyout();
+      return;
+    }
+    activeRailTab = tab;
+    railFlyout.hidden = false;
+    Object.entries(railBtns).forEach(([k, b]) => b?.classList.toggle("active", k === tab));
+    Object.entries(flyoutSections).forEach(([k, s]) => {
+      if (s) s.hidden = k !== tab;
+    });
+    const titles = {
+      transform: "Transform",
+      adjust: "Tone & Color",
+      fx: "Creative Effects",
+      balance: "Crop Balance",
+    };
+    const badges = {
+      transform: "Orientation",
+      adjust: "Hardware 2D",
+      fx: "Sony Vegas & Sobel",
+      balance: "Shared Mode",
+    };
+    if (flyoutTitle) flyoutTitle.textContent = titles[tab] || "Tools";
+    if (flyoutBadge) flyoutBadge.textContent = badges[tab] || "";
+    if (tab === "balance") updateBalanceUI();
+  };
+
+  Object.entries(railBtns).forEach(([tab, btn]) => {
+    btn?.addEventListener("click", () => openRailTab(tab));
+  });
+
+  flyoutCloseBtn?.addEventListener("click", closeRailFlyout);
+
+  // Close flyout on outside click (excluding canvas to allow live pan/zoom)
+  document.addEventListener("pointerdown", (e) => {
+    if (!activeRailTab) return;
+    const rail = $("toolRail");
+    if (rail && !rail.contains(e.target) && railFlyout && !railFlyout.contains(e.target)) {
+      if (e.target === desktopCanvas || e.target === mobileCanvas) return;
+      closeRailFlyout();
+    }
+  });
+
+  // ── Transform Panel Actions ─────────────────────────────────
+  const toolMirrorX = $("toolMirrorX");
+  const toolFlipY = $("toolFlipY");
+  const toolRotate = $("toolRotate");
+  const rotateValueBadge = $("rotateValueBadge");
+  const toolResetTransform = $("toolResetTransform");
+
+  toolMirrorX?.addEventListener("click", () => {
+    state.transform.mirrorX = !state.transform.mirrorX;
+    toolMirrorX.classList.toggle("active", state.transform.mirrorX);
+    updateRailIndicators();
+    scheduleRender();
+    showToast(`Mirror X: ${state.transform.mirrorX ? "On" : "Off"}`);
+  });
+
+  toolFlipY?.addEventListener("click", () => {
+    state.transform.flipY = !state.transform.flipY;
+    toolFlipY.classList.toggle("active", state.transform.flipY);
+    updateRailIndicators();
+    scheduleRender();
+    showToast(`Flip Y: ${state.transform.flipY ? "On" : "Off"}`);
+  });
+
+  toolRotate?.addEventListener("click", () => {
+    state.transform.rotation = ((state.transform.rotation || 0) + 90) % 360;
+    if (rotateValueBadge) rotateValueBadge.textContent = `${state.transform.rotation}°`;
+    updateRailIndicators();
+    scheduleRender();
+    showToast(`Rotated: ${state.transform.rotation}°`);
+  });
+
+  toolResetTransform?.addEventListener("click", () => {
+    state.transform.mirrorX = false;
+    state.transform.flipY = false;
+    state.transform.rotation = 0;
+    toolMirrorX?.classList.remove("active");
+    toolFlipY?.classList.remove("active");
+    if (rotateValueBadge) rotateValueBadge.textContent = "0°";
+    updateRailIndicators();
+    scheduleRender();
+    showToast("Reset orientation");
+  });
+
+  // ── Tone & Color Adjustments ────────────────────────────────
+  const bindAdjustSlider = (id, valId, prop, unit = "%") => {
+    const el = $(id);
+    const valEl = $(valId);
+    if (!el || !valEl) return;
+    el.addEventListener("input", (e) => {
+      const v = Number(e.target.value);
+      state.adjust[prop] = v;
+      state.effects.activePreset = "custom";
+      document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+      valEl.textContent = v > 0 && unit === "%" ? `+${v}%` : `${v}${unit}`;
+      updateRailIndicators();
+      scheduleRender();
+    });
+    // Double click to reset to 0
+    el.addEventListener("dblclick", () => {
+      el.value = "0";
+      state.adjust[prop] = 0;
+      valEl.textContent = `0${unit}`;
+      updateRailIndicators();
+      scheduleRender();
+    });
+  };
+
+  bindAdjustSlider("sliderBrightness", "valBrightness", "brightness", "%");
+  bindAdjustSlider("sliderContrast", "valContrast", "contrast", "%");
+  bindAdjustSlider("sliderSaturation", "valSaturation", "saturation", "%");
+  bindAdjustSlider("sliderHue", "valHue", "hue", "°");
+  bindAdjustSlider("sliderWarmth", "valWarmth", "warmth", "%");
+
+  $("resetAdjustBtn")?.addEventListener("click", () => {
+    state.adjust.brightness = 0;
+    state.adjust.contrast = 0;
+    state.adjust.saturation = 0;
+    state.adjust.hue = 0;
+    state.adjust.warmth = 0;
+    syncAdjustUI();
+    updateRailIndicators();
+    scheduleRender();
+    showToast("Reset tone & color");
+  });
+
+  // ── Creative FX & Convolution Panel ─────────────────────────
+  // Presets pills
+  document.querySelectorAll(".preset-pill").forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const key = pill.dataset.preset;
+      const preset = STYLE_PRESETS[key];
+      if (!preset) return;
+      state.adjust = { ...preset.adjust };
+      state.effects = { ...preset.effects, activePreset: key };
+      syncAdjustUI();
+      syncFxUI();
+      updateRailIndicators();
+      scheduleRender();
+      showToast(`Style: ${pill.textContent}`);
+    });
+  });
+
+  // Invert (Sony Vegas negative)
+  $("switchInvert")?.addEventListener("change", (e) => {
+    state.effects.invert = e.target.checked;
+    state.effects.activePreset = "custom";
+    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+    updateRailIndicators();
+    scheduleRender();
+    showToast(`Color Invert: ${state.effects.invert ? "Enabled" : "Disabled"}`);
+  });
+
+  // Find Edges (Sobel Kernel)
+  $("switchEdges")?.addEventListener("change", (e) => {
+    state.effects.findEdges = e.target.checked;
+    state.effects.activePreset = "custom";
+    const edWrap = $("edgeOptionsWrap");
+    if (edWrap) edWrap.hidden = !state.effects.findEdges;
+    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+    updateRailIndicators();
+    scheduleRender();
+    showToast(`Sobel Edges: ${state.effects.findEdges ? "Enabled" : "Disabled"}`);
+  });
+
+  $("edgeModeOutline")?.addEventListener("click", () => {
+    state.effects.edgeMode = "outline";
+    $("edgeModeOutline").classList.add("active");
+    $("edgeModeOverlay").classList.remove("active");
+    scheduleRender();
+  });
+
+  $("edgeModeOverlay")?.addEventListener("click", () => {
+    state.effects.edgeMode = "overlay";
+    $("edgeModeOverlay").classList.add("active");
+    $("edgeModeOutline").classList.remove("active");
+    scheduleRender();
+  });
+
+  $("sliderEdgeBoost")?.addEventListener("input", (e) => {
+    state.effects.edgeBoost = Number(e.target.value);
+    $("valEdgeBoost").textContent = `${state.effects.edgeBoost}×`;
+    scheduleRender();
+  });
+
+  // Film Grain
+  const sliderGrain = $("sliderGrain");
+  sliderGrain?.addEventListener("input", (e) => {
+    state.effects.grain = Number(e.target.value);
+    $("valGrain").textContent = `${state.effects.grain}%`;
+    state.effects.activePreset = "custom";
+    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+    updateRailIndicators();
+    scheduleRender();
+  });
+  sliderGrain?.addEventListener("dblclick", () => {
+    sliderGrain.value = "0";
+    state.effects.grain = 0;
+    $("valGrain").textContent = "0%";
+    updateRailIndicators();
+    scheduleRender();
+  });
+
+  // Vignette
+  const sliderVignette = $("sliderVignette");
+  sliderVignette?.addEventListener("input", (e) => {
+    state.effects.vignette = Number(e.target.value);
+    $("valVignette").textContent = `${state.effects.vignette}%`;
+    state.effects.activePreset = "custom";
+    document.querySelectorAll(".preset-pill").forEach((p) => p.classList.remove("active"));
+    updateRailIndicators();
+    scheduleRender();
+  });
+  sliderVignette?.addEventListener("dblclick", () => {
+    sliderVignette.value = "0";
+    state.effects.vignette = 0;
+    $("valVignette").textContent = "0%";
+    updateRailIndicators();
+    scheduleRender();
+  });
+
+  $("resetFxBtn")?.addEventListener("click", () => {
+    state.effects.invert = false;
+    state.effects.findEdges = false;
+    state.effects.edgeMode = "outline";
+    state.effects.edgeBoost = 2;
+    state.effects.grain = 0;
+    state.effects.vignette = 0;
+    state.effects.activePreset = "default";
+    syncFxUI();
+    updateRailIndicators();
+    scheduleRender();
+    showToast("Reset creative effects");
+  });
+
+  // ── Crop Balance Panel (Shared Mode) ────────────────────────
+  const cropBalanceSlider = $("cropBalanceSlider");
+  cropBalanceSlider?.addEventListener("input", (e) => {
+    const pct = Number(e.target.value);
+    state.cropBalance.manualWeight = pct / 100;
+    updateBalanceUI();
+    updateRailIndicators();
+    scheduleRender();
+  });
+
+  $("resetCropBalanceBtn")?.addEventListener("click", () => {
+    state.cropBalance.manualWeight = null;
+    updateBalanceUI();
+    updateRailIndicators();
+    scheduleRender();
+    showToast("Crop balance reset to optimizer recommendation");
+  });
+
+  $("enableSharedTargetBtn")?.addEventListener("click", () => {
+    setTarget("shared");
+  });
+
+  // ── Rail Reset All Button ────────────────────────────────────
+  $("railBtnResetAll")?.addEventListener("click", () => {
+    state.transform.mirrorX = false;
+    state.transform.flipY = false;
+    state.transform.rotation = 0;
+    toolMirrorX?.classList.remove("active");
+    toolFlipY?.classList.remove("active");
+    if (rotateValueBadge) rotateValueBadge.textContent = "0°";
+
+    state.adjust.brightness = 0;
+    state.adjust.contrast = 0;
+    state.adjust.saturation = 0;
+    state.adjust.hue = 0;
+    state.adjust.warmth = 0;
+    syncAdjustUI();
+
+    state.effects.invert = false;
+    state.effects.findEdges = false;
+    state.effects.edgeMode = "outline";
+    state.effects.edgeBoost = 2;
+    state.effects.grain = 0;
+    state.effects.vignette = 0;
+    state.effects.activePreset = "default";
+    syncFxUI();
+
+    state.cropBalance.manualWeight = null;
+    updateBalanceUI();
+
+    updateRailIndicators();
+    scheduleRender();
+    showToast("Reset all image tools & effects");
   });
 
   // Upload Buttons

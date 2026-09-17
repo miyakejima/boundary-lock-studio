@@ -24,14 +24,19 @@
 ## Preview
 
 ### Studio Dual-View (Light Theme)
-*Real-time side-by-side preview with continuous texture, direct canvas manipulation, and instant dock controls.*
+*Real-time side-by-side preview with continuous paper texture, direct canvas manipulation, and floating controls.*
 
 ![headerlock Studio Light Theme](docs/screenshots/headerlock-studio-light.png)
 
-### Desktop Profile Card
-*1500 × 500 banner with the exact 400 × 400 avatar crop and border ring.*
+### Studio Dual-View (AMOLED Dark Theme)
+*Floating collapsible creative tool rail, anti-glare gradients, and seam-locked dual canvas.*
 
-![headerlock Desktop Web Card](docs/screenshots/headerlock-desktop-card.png)
+![headerlock Studio Dark Theme](docs/screenshots/headerlock-studio-dark.png)
+
+### Creative FX & Edge Detection
+*Real-time 3×3 Sobel convolution kernel (find edges), Sony Vegas negative invert, film grain, and tone adjustments—with 100% seam alignment preserved.*
+
+![headerlock Creative FX Sobel Contours](docs/screenshots/ui-fx-find-edges.png)
 
 ---
 
@@ -49,6 +54,12 @@ Because the two platforms place the avatar in different locations relative to th
 
 ## Key Features
 
+- **Collapsible Creative Tool Rail**: Sleek, unbloated vertical icon rail on the left dock with dedicated flyout panels:
+  - **Transforms**: 90° step lossless rotation, horizontal mirror (Flip X), and vertical flip (Flip Y).
+  - **Tone & Color**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint.
+  - **Creative FX & Shaders**: Sony Vegas Negative Invert, 3×3 Sobel convolution kernel (Find Edges / Contour Overlay with adjustable boost), Analog Film Grain, and Vignette.
+  - **1-Click Style Presets**: Cyberpunk, Noir, Matrix, Sony Vegas, and Default.
+  - **Crop Balance Slider**: Fine-tune the compromise ratio (0% Android $\leftrightarrow$ 100% Desktop) in Shared mode with automatic optimizer fallback.
 - **Direct Canvas Manipulation**: Click and drag directly on either the Desktop or Mobile canvas to pan your image in real time. Scroll the mouse wheel to zoom.
 - **Three Precision Alignment Targets**:
   - **Shared (Recommended)**: Joint compromise mapping balancing both desktop and mobile, with an integrity-floor fallback protecting mobile layout.

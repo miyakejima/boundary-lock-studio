@@ -142,6 +142,265 @@
         <span>Reset</span>
       </button>
     </nav>
+    <!-- Left Collapsible Icon Rail (Option 2) -->
+    <aside class="tool-rail" id="toolRail" aria-label="Image & Effect Tools">
+      <div class="rail-group">
+        <button id="railBtnTransform" class="rail-btn" type="button" title="Transform & Orientation" aria-label="Transform">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+            <path d="M16 21h5v-5"/>
+          </svg>
+          <span class="rail-dot" id="dotTransform"></span>
+        </button>
+
+        <button id="railBtnAdjust" class="rail-btn" type="button" title="Tone & Color Adjustments" aria-label="Adjustments">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"/>
+            <line x1="4" y1="10" x2="4" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12" y2="3"/>
+            <line x1="20" y1="21" x2="20" y2="16"/>
+            <line x1="20" y1="12" x2="20" y2="3"/>
+            <line x1="1" y1="14" x2="7" y2="14"/>
+            <line x1="9" y1="8" x2="15" y2="8"/>
+            <line x1="17" y1="16" x2="23" y2="16"/>
+          </svg>
+          <span class="rail-dot" id="dotAdjust"></span>
+        </button>
+
+        <button id="railBtnFx" class="rail-btn" type="button" title="Creative FX & Convolution" aria-label="Creative FX">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
+          </svg>
+          <span class="rail-dot" id="dotFx"></span>
+        </button>
+
+        <button id="railBtnBalance" class="rail-btn" type="button" title="Crop Balance (Shared Mode)" aria-label="Crop Balance">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
+            <path d="M7 21h10"/>
+            <path d="M12 3v18"/>
+            <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
+          </svg>
+          <span class="rail-dot" id="dotBalance"></span>
+        </button>
+      </div>
+
+      <div class="rail-sep"></div>
+
+      <button id="railBtnResetAll" class="rail-btn rail-btn-reset" type="button" title="Reset all adjustments & filters" aria-label="Reset all adjustments">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </aside>
+
+    <!-- Attached Sleek Flyout Panel -->
+    <div class="rail-flyout" id="railFlyout" hidden>
+      <div class="flyout-header">
+        <div class="flyout-title-wrap">
+          <span class="flyout-title" id="flyoutTitle">Transform</span>
+          <span class="flyout-badge" id="flyoutBadge"></span>
+        </div>
+        <button id="flyoutCloseBtn" class="flyout-close" type="button" title="Close panel" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Transform Section -->
+      <div class="flyout-body" id="sectionTransform">
+        <div class="flyout-grid-2">
+          <button id="toolMirrorX" class="flyout-btn-toggle" type="button" title="Flip Horizontal">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M12 3v18"/></svg>
+            <span>Mirror X</span>
+          </button>
+          <button id="toolFlipY" class="flyout-btn-toggle" type="button" title="Flip Vertical">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 8 4-5 5 15 5V2L3 8z"/><path d="M3 12h18"/></svg>
+            <span>Flip Y</span>
+          </button>
+        </div>
+
+        <div class="flyout-row" style="margin-top: 10px;">
+          <button id="toolRotate" class="flyout-btn-action" type="button" style="flex: 1;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8"/><path d="M21 3v5h-5"/></svg>
+            <span>Rotate 90°</span>
+            <span id="rotateValueBadge" class="flyout-pill-tag">0°</span>
+          </button>
+          <button id="toolResetTransform" class="flyout-btn-ghost" type="button" title="Reset Orientation">Reset</button>
+        </div>
+      </div>
+
+      <!-- Adjust Section -->
+      <div class="flyout-body" id="sectionAdjust" hidden>
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Brightness</span>
+            <span class="control-val" id="valBrightness">0%</span>
+          </div>
+          <input id="sliderBrightness" type="range" min="-100" max="100" step="1" value="0" />
+        </div>
+
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Contrast</span>
+            <span class="control-val" id="valContrast">0%</span>
+          </div>
+          <input id="sliderContrast" type="range" min="-100" max="100" step="1" value="0" />
+        </div>
+
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Saturation</span>
+            <span class="control-val" id="valSaturation">0%</span>
+          </div>
+          <input id="sliderSaturation" type="range" min="-100" max="100" step="1" value="0" />
+        </div>
+
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Hue Shift</span>
+            <span class="control-val" id="valHue">0°</span>
+          </div>
+          <input id="sliderHue" type="range" min="-180" max="180" step="1" value="0" />
+        </div>
+
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Warmth / Tint</span>
+            <span class="control-val" id="valWarmth">0%</span>
+          </div>
+          <input id="sliderWarmth" type="range" min="-100" max="100" step="1" value="0" />
+        </div>
+
+        <div class="flyout-footer">
+          <button id="resetAdjustBtn" class="flyout-btn-ghost w-full" type="button">Reset Tone & Color</button>
+        </div>
+      </div>
+
+      <!-- Creative FX Section -->
+      <div class="flyout-body" id="sectionFx" hidden>
+        <!-- Presets Row -->
+        <div class="presets-wrap">
+          <span class="presets-label">Style Presets</span>
+          <div class="presets-pills">
+            <button class="preset-pill active" data-preset="default" type="button">Default</button>
+            <button class="preset-pill" data-preset="vegas" type="button">Sony Vegas</button>
+            <button class="preset-pill" data-preset="cyberpunk" type="button">Cyberpunk</button>
+            <button class="preset-pill" data-preset="noir" type="button">Noir</button>
+            <button class="preset-pill" data-preset="matrix" type="button">Matrix</button>
+          </div>
+        </div>
+
+        <div class="flyout-sep"></div>
+
+        <!-- Invert Toggle -->
+        <div class="switch-row">
+          <div class="switch-text">
+            <span class="switch-title">Invert (Negative)</span>
+            <span class="switch-desc">Sony Vegas color inversion</span>
+          </div>
+          <label class="toggle-switch">
+            <input id="switchInvert" type="checkbox" />
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+
+        <!-- Find Edges Toggle (Convolution Kernel) -->
+        <div class="switch-row">
+          <div class="switch-text">
+            <span class="switch-title">Find Edges</span>
+            <span class="switch-desc">3×3 Sobel convolution kernel</span>
+          </div>
+          <label class="toggle-switch">
+            <input id="switchEdges" type="checkbox" />
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+
+        <!-- Edge Mode Options (Conditional) -->
+        <div id="edgeOptionsWrap" class="sub-options" hidden>
+          <div class="sub-row">
+            <span class="control-label">Edge Style</span>
+            <div class="dock-pills" style="padding: 1.5px;">
+              <button id="edgeModeOutline" class="dock-pill active" type="button">Outline</button>
+              <button id="edgeModeOverlay" class="dock-pill" type="button">Overlay</button>
+            </div>
+          </div>
+          <div class="control-row" style="margin-top: 6px;">
+            <div class="control-label-wrap">
+              <span class="control-label">Edge Boost</span>
+              <span class="control-val" id="valEdgeBoost">2×</span>
+            </div>
+            <input id="sliderEdgeBoost" type="range" min="1" max="5" step="0.5" value="2" />
+          </div>
+        </div>
+
+        <div class="flyout-sep"></div>
+
+        <!-- Film Grain -->
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Film Grain</span>
+            <span class="control-val" id="valGrain">0%</span>
+          </div>
+          <input id="sliderGrain" type="range" min="0" max="100" step="1" value="0" />
+        </div>
+
+        <!-- Vignette -->
+        <div class="control-row">
+          <div class="control-label-wrap">
+            <span class="control-label">Vignette</span>
+            <span class="control-val" id="valVignette">0%</span>
+          </div>
+          <input id="sliderVignette" type="range" min="0" max="100" step="1" value="0" />
+        </div>
+
+        <div class="flyout-footer">
+          <button id="resetFxBtn" class="flyout-btn-ghost w-full" type="button">Reset Effects</button>
+        </div>
+      </div>
+
+      <!-- Balance Section (Shared Target) -->
+      <div class="flyout-body" id="sectionBalance" hidden>
+        <div id="balanceSharedActive">
+          <div class="balance-status-row">
+            <span class="control-label">Active Compromise</span>
+            <span id="cropBalanceStatus" class="flyout-pill-tag">Auto · 2.5%</span>
+          </div>
+
+          <div class="crop-balance-track-wrap">
+            <div class="crop-balance-endpoints">
+              <span>Android (0%)</span>
+              <span>Desktop (100%)</span>
+            </div>
+            <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="3" />
+          </div>
+
+          <p class="balance-help">
+            Adjusts how the avatar crop balances between Android and Desktop boundaries in Shared mode.
+          </p>
+
+          <div class="flyout-footer">
+            <button id="resetCropBalanceBtn" class="flyout-btn-action w-full" type="button">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              <span>Reset to Auto Optimizer</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="balanceSharedInactive" hidden>
+          <div class="balance-notice">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <p>Crop balance blending is only used when <strong>Shared</strong> target mode is active.</p>
+            <button id="enableSharedTargetBtn" class="btn btn-solid" style="margin-top: 10px; font-size: 11px; height: 26px;" type="button">Switch to Shared Target</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Floating Theme Toggle Button -->
