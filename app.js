@@ -1067,6 +1067,7 @@ function initEvents() {
   const zoomSlider = $("zoomSlider");
   const zoomValue = $("zoomValue");
   zoomSlider.addEventListener("input", (e) => {
+    window.getSelection()?.removeAllRanges?.();
     state.zoom = Number(e.target.value) / 100;
     zoomValue.textContent = `${Math.round(state.zoom * 100)}%`;
     scheduleRender();
@@ -1202,6 +1203,7 @@ function initEvents() {
     const valEl = $(valId);
     if (!el || !valEl) return;
     el.addEventListener("input", (e) => {
+      window.getSelection()?.removeAllRanges?.();
       const v = Number(e.target.value);
       state.adjust[prop] = v;
       state.effects.activePreset = "custom";
@@ -1350,6 +1352,7 @@ function initEvents() {
   // ── Crop Balance Panel (Shared Mode) ────────────────────────
   const cropBalanceSlider = $("cropBalanceSlider");
   cropBalanceSlider?.addEventListener("input", (e) => {
+    window.getSelection()?.removeAllRanges?.();
     const pct = Number(e.target.value);
     state.cropBalance.manualWeight = pct / 100;
     updateBalanceUI();
@@ -1455,6 +1458,14 @@ function initEvents() {
     const file = e.dataTransfer?.files?.[0];
     if (file) loadBannerFile(file);
   });
+
+  // Prevent unwanted browser text selection during slider dragging, rapid clicking, or canvas panning
+  document.addEventListener("selectstart", (e) => {
+    const tag = e.target?.tagName?.toLowerCase();
+    if (tag === "input" && (e.target.type === "text" || e.target.type === "search")) return;
+    if (tag === "textarea" || e.target?.isContentEditable) return;
+    e.preventDefault();
+  });
 }
 
 // ── Startup (Zero-Flicker Authentic Default Banner) ───────────
@@ -1464,7 +1475,7 @@ function loadDefaultBanner() {
   const imgEl = $("defaultBannerImg");
   const onReady = (img) => {
     state.sourceBanner = img;
-    state.bannerName = "vegaz.png";
+    state.bannerName = "21_ricardoferreiraramos-kiteagainstsky.jpg";
     scheduleRender();
   };
 
@@ -1481,7 +1492,7 @@ function loadDefaultBanner() {
     scheduleRender();
   };
   if (!imgEl) {
-    defaultImg.src = "./assets/default-banner.png?v=6.5.0";
+    defaultImg.src = "./assets/default-banner.jpg?v=7.1.0";
   }
 }
 
