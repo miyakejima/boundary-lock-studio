@@ -4,319 +4,138 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
-  <title>headerlock</title>
+  <title>headerlock · seamless x profile alignment</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=5.0.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=6.0.0" />
 </head>
 <body>
-  <!-- Global Drop Overlay -->
+  <!-- Drag and drop full window overlay -->
   <div id="dropOverlay" class="drop-overlay" hidden>
-    <div class="drop-content">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <span>Drop image to load</span>
+    <div class="drop-box">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>Drop image here to load</span>
     </div>
   </div>
 
-  <!-- App Header -->
+  <!-- Header Bar -->
   <header class="app-header">
     <div class="header-left">
-      <div class="brand">
-        <span class="brand-name">headerlock</span>
-        <span class="brand-dot"></span>
-      </div>
-
-      <!-- Quick Upload Controls -->
-      <div class="upload-pills">
-        <label class="upload-pill" title="Upload banner image">
-          <input id="bannerInput" type="file" accept="image/*" />
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-          <span>Banner</span>
-          <small id="bannerMeta">1500×500</small>
-        </label>
-
-        <label class="upload-pill profile-pill" title="Upload avatar image">
-          <input id="portraitInput" type="file" accept="image/*" />
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-          <span>Avatar</span>
-          <small id="portraitMeta">Default</small>
-        </label>
-
-        <button id="editProfilePicture" class="icon-btn" type="button" title="Crop / Adjust Profile Picture">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        </button>
-      </div>
+      <a class="brand" href="./" aria-label="headerlock home">
+        <span class="brand-text">headerlock</span>
+        <span class="brand-badge">x</span>
+      </a>
     </div>
 
-    <!-- Center Mode Switcher -->
     <div class="header-center">
-      <div class="segmented-control" role="radiogroup" aria-label="Workflow mode">
-        <button id="modeBanner" class="active" type="button">Banner → Avatar</button>
-        <button id="modePortrait" type="button">Avatar → Banner</button>
+      <div class="segmented-control" role="tablist" aria-label="Preview view">
+        <button id="viewBoth" class="active" type="button" role="tab" aria-selected="true">Both</button>
+        <button id="viewDesktop" type="button" role="tab" aria-selected="false">Desktop</button>
+        <button id="viewMobile" type="button" role="tab" aria-selected="false">Mobile</button>
       </div>
     </div>
 
-    <!-- Right Zone: View Switcher, Fine-Tune, Export -->
     <div class="header-right">
-      <div class="view-switch segmented-control">
-        <button id="viewBoth" class="active" type="button" title="Side-by-side view">Both</button>
-        <button id="viewDesktop" type="button" title="Desktop web view">Desktop</button>
-        <button id="viewMobile" type="button" title="Android app view">Mobile</button>
-      </div>
-
-      <!-- Fine-Tune Drawer Trigger -->
-      <button id="toggleFineTune" class="btn-ghost" type="button" title="Fine-tune alignment, continuation & transform">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        <span>Fine-tune</span>
+      <button id="uploadBtn" class="btn btn-ghost" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Upload</span>
       </button>
 
-      <!-- Export Button & Dropdown -->
-      <div class="export-dropdown-wrapper">
-        <button id="exportBothDirect" class="btn-primary" type="button" title="Export both Avatar and Banner together">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span id="exportBtnText">Export All</span>
-        </button>
-        <button id="exportMenuTrigger" class="btn-primary btn-arrow" type="button" aria-label="More export options">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-
-        <div id="exportMenu" class="dropdown-menu" hidden>
-          <button id="exportAvatar" class="dropdown-item" type="button">
-            <span>Export Avatar PNG</span>
-            <kbd>400×400</kbd>
-          </button>
-          <div id="adjustedBannerExportWrapper">
-            <button id="exportBanner" class="dropdown-item" type="button">
-              <span>Export Banner PNG</span>
-              <kbd>1500×500</kbd>
-            </button>
-            <small id="exportHint" class="dropdown-hint">Adjusted for best shared alignment.</small>
-          </div>
-          <div class="dropdown-divider"></div>
-          <button id="exportMetadata" class="dropdown-item" type="button">
-            <span>Project JSON</span>
-            <kbd>.json</kbd>
-          </button>
-        </div>
-      </div>
+      <button id="exportBtn" class="btn btn-solid" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Export PNGs</span>
+      </button>
     </div>
   </header>
 
   <!-- Workspace Stage -->
-  <main class="workspace">
-    <div id="previewsGrid" class="previews-grid view-both">
+  <main class="stage" id="stage">
+    <div id="viewsContainer" class="views-container view-both">
+      
       <!-- Desktop Preview Card -->
-      <div class="preview-card desktop-card">
-        <div class="preview-header">
-          <span class="preview-badge">Desktop Web</span>
-          <span class="preview-dim">1500 × 500 · 400 × 400</span>
+      <section class="card desktop-view" id="desktopCard">
+        <div class="card-bar">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span>Desktop Web</span>
+          </div>
+          <span class="card-meta">1500 × 500</span>
         </div>
-        <div class="canvas-wrapper" title="Drag to pan · Scroll to zoom">
-          <canvas id="desktopCanvas" width="1200" height="760"></canvas>
-          <div class="canvas-hint">drag to pan · scroll to zoom</div>
-        </div>
-      </div>
 
-      <!-- Android Preview Card -->
-      <div class="preview-card android-card">
-        <div class="preview-header">
-          <span class="preview-badge">Mobile App</span>
-          <span class="preview-dim">X Android</span>
+        <div class="viewport desktop-viewport" title="Drag to pan · Scroll to zoom">
+          <canvas id="desktopCanvas" class="preview-canvas" width="1500" height="720"></canvas>
+          <div class="viewport-hint">drag to pan · scroll to zoom</div>
         </div>
-        <div class="canvas-wrapper" title="Drag to pan · Scroll to zoom">
-          <canvas id="androidCanvas" width="914" height="880"></canvas>
-          <div class="canvas-hint">drag to pan · scroll to zoom</div>
+      </section>
+
+      <!-- Mobile Preview Card -->
+      <section class="card mobile-view" id="mobileCard">
+        <div class="card-bar">
+          <div class="card-title">
+            <span class="dot"></span>
+            <span>Mobile App</span>
+          </div>
+          <span class="card-meta">X Android 12.2</span>
         </div>
-      </div>
+
+        <div class="viewport mobile-viewport" title="Drag to pan · Scroll to zoom">
+          <canvas id="mobileCanvas" class="preview-canvas" width="914" height="880"></canvas>
+          <div class="viewport-hint">drag to pan · scroll to zoom</div>
+        </div>
+      </section>
+
     </div>
 
-    <!-- Floating Minimal Bottom Control Island -->
-    <div class="floating-island">
-      <!-- Priority Pill -->
-      <div id="prioritySection" class="island-group">
-        <span class="island-label">Target</span>
-        <div class="segmented-control mini">
-          <label class="segmented-option">
-            <input type="radio" name="priority" value="shared" checked />
-            <span>Shared</span>
-          </label>
-          <label class="segmented-option">
-            <input type="radio" name="priority" value="desktop" />
-            <span>Desktop</span>
-          </label>
-          <label class="segmented-option">
-            <input type="radio" name="priority" value="mobile" />
-            <span>Mobile</span>
-          </label>
+    <!-- Floating Minimal Bottom Dock -->
+    <nav class="dock" aria-label="Editor controls">
+      <div class="dock-group">
+        <span class="dock-label">Target</span>
+        <div class="dock-pills" role="radiogroup" aria-label="Alignment target">
+          <button id="targetShared" class="dock-pill active" type="button">Shared</button>
+          <button id="targetDesktop" class="dock-pill" type="button">Desktop</button>
+          <button id="targetMobile" class="dock-pill" type="button">Mobile</button>
         </div>
       </div>
 
-      <div class="island-divider"></div>
+      <div class="dock-sep"></div>
 
-      <!-- Shape Pill -->
-      <div class="island-group">
-        <span class="island-label">Shape</span>
-        <select id="shapeSelect" class="island-select">
-          <option value="circle">Circle</option>
-          <option value="rounded">Rounded</option>
-        </select>
+      <div class="dock-group">
+        <span class="dock-label">Zoom</span>
+        <div class="dock-zoom">
+          <button id="zoomOut" class="dock-btn" type="button" aria-label="Zoom out">−</button>
+          <input id="zoomSlider" type="range" min="100" max="300" step="1" value="100" aria-label="Zoom level" />
+          <span id="zoomValue" class="dock-num">100%</span>
+          <button id="zoomIn" class="dock-btn" type="button" aria-label="Zoom in">＋</button>
+        </div>
       </div>
 
-      <div class="island-divider"></div>
+      <div class="dock-sep"></div>
 
-      <!-- Theme Pill -->
-      <div class="island-group">
-        <span class="island-label">Theme</span>
-        <select id="themeSelect" class="island-select">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-        </select>
+      <div class="dock-group">
+        <span class="dock-label">Shape</span>
+        <div class="dock-pills" role="radiogroup" aria-label="Avatar shape">
+          <button id="shapeCircle" class="dock-pill active" type="button">Circle</button>
+          <button id="shapeSquare" class="dock-pill" type="button">Square</button>
+        </div>
       </div>
 
-      <div class="island-divider"></div>
+      <div class="dock-sep"></div>
 
-      <!-- Reset button -->
-      <button id="resetBannerTools" class="island-btn" type="button" title="Reset position and zoom">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <button id="resetBtn" class="dock-action" type="button" title="Reset pan and zoom">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         <span>Reset</span>
       </button>
-    </div>
+    </nav>
   </main>
 
-  <!-- Fine-Tune Popover Drawer -->
-  <div id="fineTuneModal" class="fine-tune-modal" hidden>
-    <div class="fine-tune-backdrop"></div>
-    <div class="fine-tune-dialog">
-      <div class="dialog-header">
-        <h3>Fine-tune Alignment</h3>
-        <button id="closeFineTune" class="close-btn" type="button" aria-label="Close">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
+  <!-- Hidden elements for file upload and buffers -->
+  <input id="fileInput" type="file" accept="image/*" style="display: none;" />
+  <canvas id="hiddenBuffer" style="display: none;"></canvas>
 
-      <div class="dialog-body">
-        <!-- Feature Continuation -->
-        <div id="continuationSection" class="tune-block">
-          <div class="tune-row">
-            <div>
-              <strong>Feature Continuation</strong>
-              <small>Extrapolates features crossing the banner bottom seam</small>
-            </div>
-            <label class="switch">
-              <input id="continuationToggle" type="checkbox" checked />
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="tune-slider-row">
-            <div class="slider-head">
-              <span>Sensitivity</span>
-              <span id="continuationSensValue" class="slider-val">58%</span>
-            </div>
-            <input id="continuationSensitivity" type="range" min="10" max="95" step="1" value="58" />
-          </div>
-          <div class="tune-status">
-            <span id="continuationStatusDot" class="status-dot"></span>
-            <span id="continuationStatus">Detecting…</span>
-          </div>
-        </div>
-
-        <!-- Crop Balance (Shared mode) -->
-        <div id="cropBalanceSection" class="tune-block" style="display:none">
-          <div class="tune-row">
-            <div>
-              <strong>Cross-Platform Compromise</strong>
-              <small>Manual weight balance between Mobile and Desktop</small>
-            </div>
-            <button id="resetCropBalance" class="mini-btn" type="button">Auto</button>
-          </div>
-          <div class="tune-slider-row">
-            <div class="slider-head">
-              <span>Android</span>
-              <span id="cropBalanceValue" class="slider-val">Auto</span>
-              <span>Desktop</span>
-            </div>
-            <div class="range-wrap">
-              <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="0" />
-              <div id="autoWeightMarker" class="auto-marker"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Manual Transform Controls -->
-        <div id="bannerQuickTools" class="tune-block">
-          <div class="tune-row">
-            <div>
-              <strong>Transform Tools</strong>
-              <small id="bannerTransformStatus">Position and orientation</small>
-            </div>
-          </div>
-
-          <div class="btn-matrix">
-            <button id="mirrorBanner" class="tool-btn" type="button">Mirror</button>
-            <button id="flipBanner" class="tool-btn" type="button">Flip</button>
-            <button id="rotateBanner" class="tool-btn" type="button">Rotate 0°</button>
-          </div>
-
-          <div class="zoom-row">
-            <span>Zoom</span>
-            <button id="zoomBannerOut" class="tool-btn" type="button">−</button>
-            <input id="bannerZoomInput" type="number" min="100" max="400" step="1" value="100" />
-            <button id="zoomBannerIn" class="tool-btn" type="button">+</button>
-          </div>
-
-          <div class="nudge-cluster">
-            <button id="nudgeBannerUp" class="nudge-btn up" type="button">↑</button>
-            <div class="nudge-mid">
-              <button id="nudgeBannerLeft" class="nudge-btn" type="button">←</button>
-              <button id="nudgeBannerDown" class="nudge-btn" type="button">↓</button>
-              <button id="nudgeBannerRight" class="nudge-btn" type="button">→</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Portrait Controls (when Avatar -> Banner) -->
-        <div id="portraitControls" class="tune-block disabled-section">
-          <div id="profileSetIndicator" class="indicator-text">No profile picture set</div>
-          <p id="profileSetHelp" class="help-text" style="display:none"></p>
-          <small id="linkedCoverageStatus" class="coverage-text"></small>
-        </div>
-
-        <div id="sharedWarning" style="display:none"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profile Crop Modal (Clean AMOLED style) -->
-  <div id="profileEditor" class="profile-editor" hidden role="dialog" aria-modal="true">
-    <div class="profile-editor-backdrop"></div>
-    <section class="profile-editor-dialog">
-      <header class="profile-editor-header">
-        <button id="cancelProfileEditorTop" class="profile-editor-close" type="button">✕</button>
-        <h2>Crop Profile Picture</h2>
-        <button id="applyProfilePicture" class="btn-primary" type="button">Apply</button>
-      </header>
-      <div class="profile-crop-stage">
-        <canvas id="profileCropCanvas" width="600" height="600"></canvas>
-        <div class="profile-crop-ring"></div>
-      </div>
-      <div class="profile-zoom-row">
-        <span>−</span>
-        <input id="profileCropZoom" type="range" min="100" max="1200" step="1" value="100" />
-        <span>＋</span>
-      </div>
-      <footer class="profile-editor-footer">
-        <button id="resetProfileCrop" class="btn-ghost" type="button">Reset</button>
-        <button id="cancelProfileEditor" class="btn-ghost" type="button">Cancel</button>
-      </footer>
-    </section>
-  </div>
-
-  <!-- Hidden Buffers & Toast -->
-  <canvas id="avatarCanvas" width="400" height="400" style="display: none;"></canvas>
+  <!-- Clean Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="./app.js?v=5.0.0"></script>
+  <script type="module" src="./app.js?v=6.0.0"></script>
 </body>
 </html>
