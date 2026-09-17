@@ -6,7 +6,7 @@ import {
   optimizeSharedAffineMapping,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.1.0";
+} from "./core.js?v=6.1.1";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
@@ -197,7 +197,27 @@ function updateAvatar() {
     },
   });
 
-  avatarBufferCtx.putImageData(state.avatarData, 0, 0);
+  putRawImage(avatarBufferCtx, state.avatarData, 0, 0);
+}
+
+// ── Raw Image Helper ───────────────────────────────────────────
+function putRawImage(context, image, dx = 0, dy = 0) {
+  if (!image || !image.data) return;
+  let imgData;
+  if (typeof ImageData !== "undefined" && image instanceof ImageData) {
+    imgData = image;
+  } else if (typeof ImageData !== "undefined") {
+    try {
+      imgData = new ImageData(image.data, image.width, image.height);
+    } catch {
+      imgData = context.createImageData(image.width, image.height);
+      imgData.data.set(image.data);
+    }
+  } else {
+    imgData = context.createImageData(image.width, image.height);
+    imgData.data.set(image.data);
+  }
+  context.putImageData(imgData, dx, dy);
 }
 
 // ── Draw Avatar on Canvas ──────────────────────────────────────
@@ -305,10 +325,15 @@ function scheduleRender() {
   renderPending = true;
   requestAnimationFrame(() => {
     renderPending = false;
-    updateWorkingBanner();
-    updateAvatar();
-    renderDesktop();
-    renderMobile();
+    try {
+      updateWorkingBanner();
+      updateAvatar();
+      renderDesktop();
+      renderMobile();
+    } catch (err) {
+      console.error("Render pipeline error:", err);
+      showToast("Render error: " + err.message);
+    }
   });
 }
 
@@ -402,42 +427,74 @@ function exportAssets() {
 }
 
 // ── Load Banner Image from File (Default Upload Action) ────────
-function loadBannerFile(file) {
-  if (!file || !file.type.startsWith("image/")) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      state.sourceBanner = img;
-      state.bannerName = file.name;
-      state.zoom = 1.0;
-      state.panX = 0;
-      state.panY = 0;
-      $("zoomSlider").value = "100";
-      $("zoomValue").textContent = "100%";
-      scheduleRender();
-      showToast(`Banner loaded: ${file.name}`);
+// ── Image File Loader Helper ───────────────────────────────────
+function readFileAsImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Unable to decode image"));
+      img.src = e.target.result;
     };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+    reader.onerror = () => reject(new Error("Failed to read image file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Load Banner Image from File (Default Upload Action) ────────
+async function loadBannerFile(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  try {
+    let img;
+    if (typeof createImageBitmap === "function") {
+      try {
+        img = await createImageBitmap(file, { imageOrientation: "from-image" });
+      } catch {
+        img = await readFileAsImage(file);
+      }
+    } else {
+      img = await readFileAsImage(file);
+    }
+
+    state.sourceBanner = img;
+    state.bannerName = file.name;
+    state.zoom = 1.0;
+    state.panX = 0;
+    state.panY = 0;
+    $("zoomSlider").value = "100";
+    $("zoomValue").textContent = "100%";
+    scheduleRender();
+    showToast(`Banner loaded: ${file.name}`);
+  } catch (err) {
+    console.error("Banner load error:", err);
+    showToast("Failed to load banner: " + err.message);
+  }
 }
 
 // ── Load Avatar Image from File (Optional Profile Picture) ──────
-function loadAvatarFile(file) {
+async function loadAvatarFile(file) {
   if (!file || !file.type.startsWith("image/")) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-      state.customAvatar = img;
-      state.avatarName = file.name;
-      scheduleRender();
-      showToast(`Avatar loaded: ${file.name}`);
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  try {
+    let img;
+    if (typeof createImageBitmap === "function") {
+      try {
+        img = await createImageBitmap(file, { imageOrientation: "from-image" });
+      } catch {
+        img = await readFileAsImage(file);
+      }
+    } else {
+      img = await readFileAsImage(file);
+    }
+
+    state.customAvatar = img;
+    state.avatarName = file.name;
+    scheduleRender();
+    showToast(`Avatar loaded: ${file.name}`);
+  } catch (err) {
+    console.error("Avatar load error:", err);
+    showToast("Failed to load avatar: " + err.message);
+  }
 }
 
 // ── Initialize Event Listeners ─────────────────────────────────
