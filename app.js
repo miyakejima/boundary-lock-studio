@@ -1097,92 +1097,49 @@ function initEvents() {
   extendOff.addEventListener("click", () => setExtend(false));
 
   // Reset Bottom Dock Button (Pan & Zoom only)
-  $("resetBtn").addEventListener("click", () => {
+  // Reset Button (if present)
+  $("resetBtn")?.addEventListener("click", () => {
     state.zoom = 1.0;
     state.panX = 0;
     state.panY = 0;
     state.extend = true;
-    $("extendOn").classList.add("active");
-    $("extendOff").classList.remove("active");
+    $("extendOn")?.classList.add("active");
+    $("extendOff")?.classList.remove("active");
     zoomSlider.value = "100";
     zoomValue.textContent = "100%";
     scheduleRender();
     showToast("Reset pan & zoom");
   });
 
-  // ── Left Tool Rail & Attached Flyout Controller ─────────────
-  const railBtns = {
-    transform: $("railBtnTransform"),
-    adjust: $("railBtnAdjust"),
-    fx: $("railBtnFx"),
-    balance: $("railBtnBalance"),
+  // ── Sidebar Tool Tabs Controller ───────────────────────────
+  const sidebarTabs = {
+    adjust: $("tabAdjust"),
+    fx: $("tabFx"),
+    transform: $("tabTransform"),
+    balance: $("tabBalance"),
   };
-  const flyoutSections = {
-    transform: $("sectionTransform"),
-    adjust: $("sectionAdjust"),
-    fx: $("sectionFx"),
-    balance: $("sectionBalance"),
-  };
-  const railFlyout = $("railFlyout");
-  const flyoutTitle = $("flyoutTitle");
-  const flyoutBadge = $("flyoutBadge");
-  const flyoutCloseBtn = $("flyoutCloseBtn");
-
-  const closeRailFlyout = () => {
-    activeRailTab = null;
-    railFlyout.hidden = true;
-    Object.values(railBtns).forEach((b) => b?.classList.remove("active"));
+  const sidebarPanels = {
+    adjust: $("panelAdjust"),
+    fx: $("panelFx"),
+    transform: $("panelTransform"),
+    balance: $("panelBalance"),
   };
 
-  const openRailTab = (tab) => {
-    if (activeRailTab === tab) {
-      closeRailFlyout();
-      return;
-    }
-    activeRailTab = tab;
-    railFlyout.hidden = false;
-    Object.entries(railBtns).forEach(([k, b]) => b?.classList.toggle("active", k === tab));
-    Object.entries(flyoutSections).forEach(([k, s]) => {
-      if (s) s.hidden = k !== tab;
+  const switchSidebarTab = (tab) => {
+    Object.entries(sidebarTabs).forEach(([k, btn]) => {
+      btn?.classList.toggle("active", k === tab);
+      btn?.setAttribute("aria-selected", k === tab ? "true" : "false");
     });
-    const titles = {
-      transform: "Transform",
-      adjust: "Tone & Color",
-      fx: "Creative Effects",
-      balance: "Crop Balance",
-    };
-    const badges = {
-      transform: "Orientation",
-      adjust: "Hardware 2D",
-      fx: "Sony Vegas & Sobel",
-      balance: "Shared Mode",
-    };
-    if (flyoutTitle) flyoutTitle.textContent = titles[tab] || "Tools";
-    if (flyoutBadge) flyoutBadge.textContent = badges[tab] || "";
+    Object.entries(sidebarPanels).forEach(([k, panel]) => {
+      if (panel) panel.hidden = k !== tab;
+    });
     if (tab === "balance") updateBalanceUI();
   };
 
-  Object.entries(railBtns).forEach(([tab, btn]) => {
-    btn?.addEventListener("click", () => openRailTab(tab));
+  Object.entries(sidebarTabs).forEach(([tab, btn]) => {
+    btn?.addEventListener("click", () => switchSidebarTab(tab));
   });
 
-  flyoutCloseBtn?.addEventListener("click", closeRailFlyout);
-
-  // Close flyout on outside click (excluding canvas to allow live pan/zoom)
-  document.addEventListener("pointerdown", (e) => {
-    if (!activeRailTab) return;
-    const rail = $("toolRail");
-    if (rail && !rail.contains(e.target) && railFlyout && !railFlyout.contains(e.target)) {
-      if (e.target === desktopCanvas || e.target === mobileCanvas) return;
-      closeRailFlyout();
-    }
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && activeRailTab) {
-      closeRailFlyout();
-    }
-  });
 
   // ── Transform Panel Actions ─────────────────────────────────
   const toolMirrorX = $("toolMirrorX");
@@ -1219,12 +1176,19 @@ function initEvents() {
     state.transform.mirrorX = false;
     state.transform.flipY = false;
     state.transform.rotation = 0;
+    state.zoom = 1.0;
+    state.panX = 0;
+    state.panY = 0;
     toolMirrorX?.classList.remove("active");
     toolFlipY?.classList.remove("active");
     if (rotateValueBadge) rotateValueBadge.textContent = "0°";
+    const zSlider = $("zoomSlider");
+    const zVal = $("zoomValue");
+    if (zSlider) zSlider.value = "100";
+    if (zVal) zVal.textContent = "100%";
     updateRailIndicators();
     scheduleRender();
-    showToast("Reset orientation");
+    showToast("Reset orientation & zoom");
   });
 
   // ── Tone & Color Adjustments ────────────────────────────────
@@ -1400,14 +1364,21 @@ function initEvents() {
     setTarget("shared");
   });
 
-  // ── Rail Reset All Button ────────────────────────────────────
+  // ── Global Reset All Button ────────────────────────────────────
   $("railBtnResetAll")?.addEventListener("click", () => {
     state.transform.mirrorX = false;
     state.transform.flipY = false;
     state.transform.rotation = 0;
+    state.zoom = 1.0;
+    state.panX = 0;
+    state.panY = 0;
     toolMirrorX?.classList.remove("active");
     toolFlipY?.classList.remove("active");
     if (rotateValueBadge) rotateValueBadge.textContent = "0°";
+    const zSlider = $("zoomSlider");
+    const zVal = $("zoomValue");
+    if (zSlider) zSlider.value = "100";
+    if (zVal) zVal.textContent = "100%";
 
     state.adjust.brightness = 0;
     state.adjust.contrast = 0;
@@ -1428,10 +1399,19 @@ function initEvents() {
     state.cropBalance.manualWeight = null;
     updateBalanceUI();
 
+    state.extend = true;
+    $("extendOn")?.classList.add("active");
+    $("extendOff")?.classList.remove("active");
+
+    state.shape = "circle";
+    $("shapeCircle")?.classList.add("active");
+    $("shapeSquare")?.classList.remove("active");
+
     updateRailIndicators();
     scheduleRender();
-    showToast("Reset all image tools & effects");
+    showToast("Reset all studio settings");
   });
+
 
   // Upload Buttons
   $("uploadBannerBtn").addEventListener("click", () => bannerInput.click());

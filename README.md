@@ -23,20 +23,20 @@
 
 ## Preview
 
-### Studio Dual-View (Light Theme)
-*Real-time side-by-side preview with continuous paper texture, direct canvas manipulation, and floating controls.*
+### Studio Workstation (AMOLED Dark Theme)
+*Professional two-column workstation: permanent left-hand creative tool deck with zero canvas overlap, paired with vertically stacked 1:1 identical-scale Desktop Web and Mobile App previews.*
 
-![headerlock Studio Light Theme](docs/screenshots/headerlock-studio-light.png)
+![headerlock Studio Workstation Dark Theme](docs/screenshots/workstation-both-dark.png)
 
-### Studio Dual-View (AMOLED Dark Theme)
-*Floating collapsible creative tool rail, anti-glare gradients, and seam-locked dual canvas.*
+### Studio Workstation (Linen Light Theme)
+*High-contrast light workstation layout with dedicated Tone & Color adjustments, live dual-seam score badge (`Desktop: 88% · Mobile: 85%`), and authentic X profile geometry.*
 
-![headerlock Studio Dark Theme](docs/screenshots/headerlock-studio-dark.png)
+![headerlock Studio Workstation Light Theme](docs/screenshots/workstation-both-light.png)
 
-### Creative FX & Edge Detection
-*Real-time 3×3 Sobel convolution kernel (find edges), Sony Vegas negative invert, film grain, and tone adjustments—with 100% seam alignment preserved.*
+### Creative FX & Style Presets
+*Real-time 3×3 Sobel convolution kernel (find edges), Sony Vegas negative color invert, analog film grain, vignette, and instant Cyberpunk/Noir presets—with 100% boundary lock integrity preserved.*
 
-![headerlock Creative FX Sobel Contours](docs/screenshots/ui-fx-find-edges.png)
+![headerlock Creative FX Workstation](docs/screenshots/workstation-fx-dark.png)
 
 ---
 
@@ -54,21 +54,24 @@ Because the two platforms place the avatar in different locations relative to th
 
 ## Key Features
 
-- **Studio Creative Toolbar & Expandable Shelf**: Sleek, unobtrusive toolbar situated directly above the preview cards with 0% canvas overlap and dedicated shelf panels:
-  - **Transforms**: 90° step lossless rotation, horizontal mirror (Flip X), and vertical flip (Flip Y).
-  - **Tone & Color**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint.
-  - **Creative FX & Shaders**: Sony Vegas Negative Invert, 3×3 Sobel convolution kernel (Find Edges / Contour Overlay with adjustable boost), Analog Film Grain, and Vignette.
-  - **1-Click Style Presets**: Cyberpunk, Noir, Matrix, Sony Vegas, and Default.
-  - **Dual-Seam Optimizer & Crop Balance**: Multi-angle bilinear seam optimizer maximizing simultaneous desktop and mobile seam integrity ($\min(S_D, S_M)$), with live score readouts and manual override.
+- **Studio Workstation Architecture**:
+  - **Permanent Left Creative Deck**: Dedicated control sidebar for adjustments, creative shaders, transform tools, and dual-seam balancing. Never covers the artwork while you tune sliders or toggles.
+  - **1:1 Vertical Comparison Stack**: Desktop Web ($1500 \times 500$) and Mobile App ($914 \times 305$) previews are rendered at the exact same 3:1 width and scale. Look straight down to compare avatar boundary shifts with zero distortion.
+  - **Single-View Focus Modes**: 1-click toggles in the header to isolate `Desktop Only` or `Mobile Only` when needed.
+- **Tone & Color Adjustments**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint with live readouts and double-click reset.
+- **Creative FX & Shaders**: Sony Vegas Negative Invert, 3×3 Sobel convolution kernel (Find Edges / Contour Overlay with adjustable boost), Analog Film Grain, and Vignette.
+- **1-Click Style Presets**: Cyberpunk, Noir, Matrix, Sony Vegas, and Default.
+- **Dual-Seam Optimizer & Crop Balance**: Multi-angle bilinear seam optimizer maximizing simultaneous desktop and mobile seam integrity ($\min(S_D, S_M)$), with live score readouts and manual override.
 - **Direct Canvas Manipulation**: Click and drag directly on either the Desktop or Mobile canvas to pan your image in real time. Scroll the mouse wheel to zoom.
 - **Three Precision Alignment Targets**:
   - **Shared (Recommended)**: Mathematical dual-seam optimizer finding the sweet-spot mapping that locks both desktop and mobile borders simultaneously.
   - **Desktop**: $100\%$ bit-exact alignment for Desktop web ($Y=500$).
   - **Mobile**: $100\%$ bit-exact alignment for X Android Compose app ($331.35\text{ px}$ center).
 - **Feature Continuation**: Extends artistic patterns, lines, and gradients downward past the banner boundary so the bottom half of the avatar is never cut off or black.
-- **AMOLED Dark & Linen Light Themes**: High-contrast, anti-glare studio background gradients with cohesive micro-dot paper texture and an animated floating theme switch.
+- **AMOLED Dark & Linen Light Themes**: High-contrast, anti-glare studio background gradients with cohesive micro-dot paper texture and an animated theme switch.
 - **One-Click Export**: Downloads `banner-1500x500.png` and `avatar-400x400.png` simultaneously.
 - **100% Client-Side Privacy**: No server uploads, no analytics, no cookies. Your images never leave your browser.
+
 
 ---
 

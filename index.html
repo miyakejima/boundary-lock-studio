@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <title>headerlock · seamless x profile alignment</title>
-  <link rel="icon" type="image/png" href="./assets/icon.png?v=6.5.0" />
-  <link rel="apple-touch-icon" href="./assets/icon.png?v=6.5.0" />
-  <link rel="preload" as="image" href="./assets/default-banner.png?v=6.5.0" />
+  <link rel="icon" type="image/png" href="./assets/icon.png?v=7.0.0" />
+  <link rel="apple-touch-icon" href="./assets/icon.png?v=7.0.0" />
+  <link rel="preload" as="image" href="./assets/default-banner.png?v=7.0.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=6.5.0" />
+  <link rel="stylesheet" href="./styles.css?v=7.0.0" />
 </head>
 <body>
   <!-- Default Banner Image (Preloaded to eliminate initial render flicker) -->
-  <img id="defaultBannerImg" src="./assets/default-banner.png?v=6.5.0" style="display: none;" alt="" />
+  <img id="defaultBannerImg" src="./assets/default-banner.png?v=7.0.0" style="display: none;" alt="" />
 
   <!-- Drag and drop full window overlay -->
   <div id="dropOverlay" class="drop-overlay" hidden>
@@ -35,13 +35,23 @@
 
     <div class="header-center">
       <div class="segmented-control" role="tablist" aria-label="Preview view">
+        <button id="viewBoth" class="active" type="button" role="tab" aria-selected="true">Both (Stacked)</button>
         <button id="viewDesktop" type="button" role="tab" aria-selected="false">Desktop</button>
-        <button id="viewBoth" class="active" type="button" role="tab" aria-selected="true">Both</button>
         <button id="viewMobile" type="button" role="tab" aria-selected="false">Mobile</button>
       </div>
     </div>
 
     <div class="header-right">
+      <button id="themeToggleBtn" class="header-btn-icon" type="button" title="Toggle Light / Dark Theme" aria-label="Toggle theme">
+        <svg class="theme-icon sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+        </svg>
+        <svg class="theme-icon moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+        </svg>
+      </button>
+
       <button id="uploadBannerBtn" class="btn btn-ghost" type="button" title="Upload image (1500 × 500 or larger)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         <span>Upload Image</span>
@@ -54,108 +64,44 @@
     </div>
   </header>
 
-  <!-- Workspace Stage -->
-  <main class="stage" id="stage">
-    <!-- Top Studio Toolbar & Expandable Shelf (Positioned cleanly above cards, zero canvas overlap) -->
-    <div class="studio-bar-wrapper" id="studioBarWrapper">
-      <nav class="studio-toolbar" id="toolRail" role="toolbar" aria-label="Studio creative tools">
-        <div class="studio-tools-group">
-          <button id="railBtnTransform" class="studio-tool-btn" type="button" title="Transform & Orientation" aria-label="Transform">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-              <path d="M3 3v5h5"/>
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-              <path d="M16 21h5v-5"/>
-            </svg>
-            <span>Transform</span>
-            <span class="rail-dot" id="dotTransform"></span>
-          </button>
+  <!-- Studio Workstation Container -->
+  <div class="studio-workspace" id="studioWorkspace">
+    
+    <!-- Left Studio Sidebar (Fixed Pro Creative Controls) -->
+    <aside class="studio-sidebar" id="studioSidebar" aria-label="Studio tools and controls">
+      
+      <!-- Section 1: Alignment Target -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <span class="sidebar-section-title">Alignment Target</span>
+          <span id="seamScoreBadge" class="sidebar-badge">Desktop: 88% · Mobile: 85%</span>
+        </div>
+        <div class="dock-pills w-full" role="radiogroup" aria-label="Alignment target">
+          <button id="targetDesktop" class="dock-pill" type="button">Desktop</button>
+          <button id="targetShared" class="dock-pill active" type="button">Shared</button>
+          <button id="targetMobile" class="dock-pill" type="button">Mobile</button>
+        </div>
+      </div>
 
-          <button id="railBtnAdjust" class="studio-tool-btn" type="button" title="Tone & Color Adjustments" aria-label="Adjustments">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="4" y1="21" x2="4" y2="14"/>
-              <line x1="4" y1="10" x2="4" y2="3"/>
-              <line x1="12" y1="21" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12" y2="3"/>
-              <line x1="20" y1="21" x2="20" y2="16"/>
-              <line x1="20" y1="12" x2="20" y2="3"/>
-              <line x1="1" y1="14" x2="7" y2="14"/>
-              <line x1="9" y1="8" x2="15" y2="8"/>
-              <line x1="17" y1="16" x2="23" y2="16"/>
-            </svg>
+      <!-- Section 2: Studio Tool Tabs & Panels -->
+      <div class="sidebar-section sidebar-tool-section">
+        <div class="sidebar-tabs" role="tablist" aria-label="Studio creative tools">
+          <button id="tabAdjust" class="sidebar-tab active" type="button" role="tab" aria-selected="true">
             <span>Adjust</span>
-            <span class="rail-dot" id="dotAdjust"></span>
           </button>
-
-          <button id="railBtnFx" class="studio-tool-btn" type="button" title="Creative FX & Convolution" aria-label="Creative FX">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3 1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
-            </svg>
-            <span>Creative FX</span>
-            <span class="rail-dot" id="dotFx"></span>
+          <button id="tabFx" class="sidebar-tab" type="button" role="tab" aria-selected="false">
+            <span>Effects</span>
           </button>
-
-          <button id="railBtnBalance" class="studio-tool-btn" type="button" title="Crop Balance (Shared Mode)" aria-label="Crop Balance">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-              <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/>
-              <path d="M7 21h10"/>
-              <path d="M12 3v18"/>
-              <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>
-            </svg>
-            <span>Crop Balance</span>
-            <span class="rail-dot" id="dotBalance"></span>
+          <button id="tabTransform" class="sidebar-tab" type="button" role="tab" aria-selected="false">
+            <span>Transform</span>
+          </button>
+          <button id="tabBalance" class="sidebar-tab" type="button" role="tab" aria-selected="false">
+            <span>Balance</span>
           </button>
         </div>
 
-        <div class="studio-sep"></div>
-
-        <button id="railBtnResetAll" class="studio-tool-btn studio-tool-reset" type="button" title="Reset all adjustments & filters" aria-label="Reset all adjustments">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-            <path d="M3 3v5h5"/>
-          </svg>
-          <span>Reset All</span>
-        </button>
-      </nav>
-
-      <!-- Attached Studio Shelf (Expands horizontally directly above preview cards) -->
-      <div class="studio-shelf" id="railFlyout" hidden>
-        <div class="flyout-header">
-          <div class="flyout-title-wrap">
-            <span class="flyout-title" id="flyoutTitle">Transform</span>
-            <span class="flyout-badge" id="flyoutBadge"></span>
-          </div>
-          <button id="flyoutCloseBtn" class="flyout-close" type="button" title="Close panel" aria-label="Close">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-
-        <!-- Transform Section -->
-        <div class="flyout-body" id="sectionTransform">
-          <div class="flyout-grid-2">
-            <button id="toolMirrorX" class="flyout-btn-toggle" type="button" title="Flip Horizontal">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M12 3v18"/></svg>
-              <span>Mirror X</span>
-            </button>
-            <button id="toolFlipY" class="flyout-btn-toggle" type="button" title="Flip Vertical">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 8 4-5 5 15 5V2L3 8z"/><path d="M3 12h18"/></svg>
-              <span>Flip Y</span>
-            </button>
-          </div>
-
-          <div class="flyout-row" style="margin-top: 10px;">
-            <button id="toolRotate" class="flyout-btn-action" type="button" style="flex: 1;">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8"/><path d="M21 3v5h-5"/></svg>
-              <span>Rotate 90°</span>
-              <span id="rotateValueBadge" class="flyout-pill-tag">0°</span>
-            </button>
-            <button id="toolResetTransform" class="flyout-btn-ghost" type="button" title="Reset Orientation">Reset</button>
-          </div>
-        </div>
-
-        <!-- Adjust Section -->
-        <div class="flyout-body" id="sectionAdjust" hidden>
+        <!-- Panel 1: Tone & Color Adjustments -->
+        <div class="sidebar-panel" id="panelAdjust">
           <div class="adjust-grid">
             <div class="control-row">
               <div class="control-label-wrap">
@@ -198,13 +144,13 @@
             </div>
           </div>
 
-          <div class="flyout-footer">
+          <div class="sidebar-panel-footer">
             <button id="resetAdjustBtn" class="flyout-btn-ghost w-full" type="button">Reset Tone & Color</button>
           </div>
         </div>
 
-        <!-- Creative FX Section -->
-        <div class="flyout-body" id="sectionFx" hidden>
+        <!-- Panel 2: Creative FX & Convolution -->
+        <div class="sidebar-panel" id="panelFx" hidden>
           <div class="presets-wrap">
             <span class="presets-label">Style Presets</span>
             <div class="presets-pills">
@@ -219,11 +165,9 @@
           <div class="flyout-sep"></div>
 
           <div class="fx-switches-grid">
-            <!-- Invert Toggle -->
             <div class="switch-row">
               <div class="switch-text">
                 <span class="switch-title">Invert (Negative)</span>
-                <span class="switch-desc">Sony Vegas negative color filter</span>
               </div>
               <label class="toggle-switch">
                 <input id="switchInvert" type="checkbox" />
@@ -231,11 +175,9 @@
               </label>
             </div>
 
-            <!-- Find Edges Toggle -->
             <div class="switch-row">
               <div class="switch-text">
                 <span class="switch-title">Find Edges (Sobel)</span>
-                <span class="switch-desc">3×3 convolution kernel</span>
               </div>
               <label class="toggle-switch">
                 <input id="switchEdges" type="checkbox" />
@@ -265,7 +207,6 @@
           <div class="flyout-sep"></div>
 
           <div class="fx-sliders-grid">
-            <!-- Film Grain -->
             <div class="control-row">
               <div class="control-label-wrap">
                 <span class="control-label">Film Grain</span>
@@ -274,7 +215,6 @@
               <input id="sliderGrain" type="range" min="0" max="100" step="1" value="0" />
             </div>
 
-            <!-- Vignette -->
             <div class="control-row">
               <div class="control-label-wrap">
                 <span class="control-label">Vignette</span>
@@ -284,35 +224,73 @@
             </div>
           </div>
 
-          <div class="flyout-footer">
+          <div class="sidebar-panel-footer">
             <button id="resetFxBtn" class="flyout-btn-ghost w-full" type="button">Reset Effects</button>
           </div>
         </div>
 
-        <!-- Balance Section (Shared Target) -->
-        <div class="flyout-body" id="sectionBalance" hidden>
+        <!-- Panel 3: Transform & Zoom -->
+        <div class="sidebar-panel" id="panelTransform" hidden>
+          <div class="flyout-grid-2">
+            <button id="toolMirrorX" class="flyout-btn-toggle" type="button" title="Flip Horizontal">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/><path d="M12 3v18"/></svg>
+              <span>Mirror X</span>
+            </button>
+            <button id="toolFlipY" class="flyout-btn-toggle" type="button" title="Flip Vertical">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 8 4-5 5 15 5V2L3 8z"/><path d="M3 12h18"/></svg>
+              <span>Flip Y</span>
+            </button>
+          </div>
+
+          <div class="flyout-row" style="margin-top: 10px;">
+            <button id="toolRotate" class="flyout-btn-action" type="button" style="flex: 1;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24L21 8"/><path d="M21 3v5h-5"/></svg>
+              <span>Rotate 90°</span>
+              <span id="rotateValueBadge" class="flyout-pill-tag">0°</span>
+            </button>
+          </div>
+
+          <div class="flyout-sep"></div>
+
+          <!-- Zoom Slider -->
+          <div class="control-row">
+            <div class="control-label-wrap">
+              <span class="control-label">Canvas Zoom</span>
+              <span class="control-val" id="zoomValue">100%</span>
+            </div>
+            <div class="dock-zoom" style="width: 100%;">
+              <button id="zoomOut" class="dock-btn" type="button" aria-label="Zoom out">−</button>
+              <input id="zoomSlider" type="range" min="100" max="300" step="1" value="100" style="flex: 1; width: auto;" aria-label="Zoom level" />
+              <button id="zoomIn" class="dock-btn" type="button" aria-label="Zoom in">＋</button>
+            </div>
+          </div>
+
+          <div class="sidebar-panel-footer">
+            <button id="toolResetTransform" class="flyout-btn-ghost w-full" type="button" title="Reset Orientation and Zoom">Reset Orientation & Zoom</button>
+          </div>
+        </div>
+
+        <!-- Panel 4: Dual Seam Optimizer Balance -->
+        <div class="sidebar-panel" id="panelBalance" hidden>
           <div id="balanceSharedActive">
             <div class="balance-status-row">
               <span class="control-label">Active Compromise</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="seamScoreBadge" class="flyout-pill-tag" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #60a5fa;">Dual Lock: --%</span>
-                <span id="cropBalanceStatus" class="flyout-pill-tag">Auto · 50%</span>
-              </div>
+              <span id="cropBalanceStatus" class="flyout-pill-tag">Auto · 50%</span>
             </div>
 
-            <div class="crop-balance-track-wrap">
+            <div class="crop-balance-track-wrap" style="margin: 12px 0 8px;">
               <div class="crop-balance-endpoints">
                 <span>Android (0%)</span>
                 <span>Desktop (100%)</span>
               </div>
-              <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="50" />
+              <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="50" style="width: 100%;" />
             </div>
 
             <p class="balance-help">
               Adjusts how the avatar crop balances between Android and Desktop boundaries in Shared mode.
             </p>
 
-            <div class="flyout-footer">
+            <div class="sidebar-panel-footer">
               <button id="resetCropBalanceBtn" class="flyout-btn-action w-full" type="button">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                 <span>Reset to Auto Optimizer</span>
@@ -323,118 +301,87 @@
           <div id="balanceSharedInactive" hidden>
             <div class="balance-notice">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <p>Crop balance blending is only used when <strong>Shared</strong> target mode is active.</p>
+              <p>Crop balance blending is only active when <strong>Shared</strong> target mode is selected.</p>
               <button id="enableSharedTargetBtn" class="btn btn-solid" style="margin-top: 10px; font-size: 11px; height: 26px;" type="button">Switch to Shared Target</button>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="viewsContainer" class="views-container view-both">
-      
-      <!-- Desktop Preview Card -->
-      <section class="card desktop-view" id="desktopCard">
-        <div class="card-bar">
-          <div class="card-title">
-            <span class="dot"></span>
-            <span>Desktop Web</span>
+      <!-- Section 3: Canvas Settings -->
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Canvas Settings</span>
+        
+        <div class="sidebar-setting-row">
+          <span class="setting-label">Avatar Shape</span>
+          <div class="dock-pills" role="radiogroup" aria-label="Avatar shape">
+            <button id="shapeCircle" class="dock-pill active" type="button">Circle</button>
+            <button id="shapeSquare" class="dock-pill" type="button">Square</button>
           </div>
-          <span class="card-meta">1500 × 500</span>
         </div>
 
-        <div class="viewport desktop-viewport" title="Drag to pan · Scroll to zoom">
-          <canvas id="desktopCanvas" class="preview-canvas" width="1500" height="720"></canvas>
-          <div class="viewport-hint">drag to pan · scroll to zoom</div>
-        </div>
-      </section>
-
-      <!-- Mobile Preview Card -->
-      <section class="card mobile-view" id="mobileCard">
-        <div class="card-bar">
-          <div class="card-title">
-            <span class="dot"></span>
-            <span>Mobile App</span>
+        <div class="sidebar-setting-row">
+          <span class="setting-label">Feature Extension</span>
+          <div class="dock-pills" role="radiogroup" aria-label="Feature extension below banner edge">
+            <button id="extendOn" class="dock-pill active" type="button" title="Extend banner features into lower avatar">On</button>
+            <button id="extendOff" class="dock-pill" type="button" title="Cut off at banner bottom edge">Off</button>
           </div>
-          <span class="card-meta">X Android 12.2</span>
-        </div>
-
-        <div class="viewport mobile-viewport" title="Drag to pan · Scroll to zoom">
-          <canvas id="mobileCanvas" class="preview-canvas" width="914" height="880"></canvas>
-          <div class="viewport-hint">drag to pan · scroll to zoom</div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- Floating Minimal Bottom Dock -->
-    <nav class="dock" aria-label="Editor controls">
-      <div class="dock-group">
-        <span class="dock-label">Target</span>
-        <div class="dock-pills" role="radiogroup" aria-label="Alignment target">
-          <button id="targetDesktop" class="dock-pill" type="button">Desktop</button>
-          <button id="targetShared" class="dock-pill active" type="button">Shared</button>
-          <button id="targetMobile" class="dock-pill" type="button">Mobile</button>
         </div>
       </div>
 
-      <div class="dock-sep"></div>
-
-      <div class="dock-group">
-        <span class="dock-label">Zoom</span>
-        <div class="dock-zoom">
-          <button id="zoomOut" class="dock-btn" type="button" aria-label="Zoom out">−</button>
-          <input id="zoomSlider" type="range" min="100" max="300" step="1" value="100" aria-label="Zoom level" />
-          <span id="zoomValue" class="dock-num">100%</span>
-          <button id="zoomIn" class="dock-btn" type="button" aria-label="Zoom in">＋</button>
-        </div>
+      <!-- Section 4: Global Reset All -->
+      <div class="sidebar-footer">
+        <button id="railBtnResetAll" class="sidebar-reset-btn w-full" type="button" title="Reset all adjustments, effects, and position">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <span>Reset All Settings</span>
+        </button>
       </div>
 
-      <div class="dock-sep"></div>
+    </aside>
 
-      <div class="dock-group">
-        <span class="dock-label">Shape</span>
-        <div class="dock-pills" role="radiogroup" aria-label="Avatar shape">
-          <button id="shapeCircle" class="dock-pill active" type="button">Circle</button>
-          <button id="shapeSquare" class="dock-pill" type="button">Square</button>
-        </div>
+    <!-- Right Studio Stage (Vertically Stacked 1:1 Previews) -->
+    <main class="studio-stage" id="studioStage">
+      <div id="viewsContainer" class="views-container view-both">
+        
+        <!-- Desktop Preview Card -->
+        <section class="card desktop-view" id="desktopCard">
+          <div class="card-bar">
+            <div class="card-title">
+              <span class="dot"></span>
+              <span>Desktop Web</span>
+            </div>
+            <span class="card-meta">1500 × 500 · 3:1 Banner</span>
+          </div>
+
+          <div class="viewport desktop-viewport" title="Drag to pan · Scroll to zoom">
+            <canvas id="desktopCanvas" class="preview-canvas" width="1500" height="720"></canvas>
+            <div class="viewport-hint">drag to pan · scroll to zoom</div>
+          </div>
+        </section>
+
+        <!-- Mobile Preview Card -->
+        <section class="card mobile-view" id="mobileCard">
+          <div class="card-bar">
+            <div class="card-title">
+              <span class="dot"></span>
+              <span>Mobile App</span>
+            </div>
+            <span class="card-meta">X Android 12.2 · 3:1 Banner</span>
+          </div>
+
+          <div class="viewport mobile-viewport" title="Drag to pan · Scroll to zoom">
+            <canvas id="mobileCanvas" class="preview-canvas" width="914" height="560"></canvas>
+            <div class="viewport-hint">drag to pan · scroll to zoom</div>
+          </div>
+        </section>
+
       </div>
+    </main>
 
-      <div class="dock-sep"></div>
-
-      <div class="dock-group">
-        <span class="dock-label">Extend</span>
-        <div class="dock-pills" role="radiogroup" aria-label="Feature extension below banner edge">
-          <button id="extendOn" class="dock-pill active" type="button" title="Extend banner features into lower avatar">On</button>
-          <button id="extendOff" class="dock-pill" type="button" title="Cut off at banner bottom edge">Off</button>
-        </div>
-      </div>
-
-      <div class="dock-sep"></div>
-
-      <button id="resetBtn" class="dock-action" type="button" title="Reset pan, zoom & avatar">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        <span>Reset</span>
-      </button>
-  </main>
-
-  <!-- Floating Theme Toggle Button -->
-  <button id="themeToggleBtn" class="theme-toggle" type="button" title="Toggle Light / Dark Theme" aria-label="Toggle theme">
-    <svg class="theme-icon sun-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="4"/>
-      <path d="M12 2v2"/>
-      <path d="M12 20v2"/>
-      <path d="m4.93 4.93 1.41 1.41"/>
-      <path d="m17.66 17.66 1.41 1.41"/>
-      <path d="M2 12h2"/>
-      <path d="M20 12h2"/>
-      <path d="m6.34 17.66-1.41 1.41"/>
-      <path d="m19.07 4.93-1.41 1.41"/>
-    </svg>
-    <svg class="theme-icon moon-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-    </svg>
-  </button>
+  </div>
 
   <!-- Hidden elements for file upload -->
   <input id="bannerInput" type="file" accept="image/*" style="display: none;" />
@@ -442,6 +389,6 @@
   <!-- Clean Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="./app.js?v=6.5.0"></script>
+  <script type="module" src="./app.js?v=7.0.0"></script>
 </body>
 </html>
