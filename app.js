@@ -4,9 +4,10 @@ import {
   geometryFromPreset,
   sourceMappingFromLayout,
   optimizeSharedAffineMapping,
+  detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.1.1";
+} from "./core.js?v=6.2.0";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
@@ -19,6 +20,7 @@ const state = {
   panY: 0,
   target: "shared",      // "shared" | "desktop" | "mobile"
   shape: "circle",       // "circle" | "square"
+  extend: true,          // Extend banner features below the boundary
   view: "both",          // "both" | "desktop" | "mobile"
   bannerData: null,      // ImageData (1500 × 500)
   avatarData: null,      // ImageData (400 × 400)
@@ -175,6 +177,23 @@ function updateAvatar() {
     customAvatarData = pCtx.getImageData(0, 0, pW, pH);
   }
 
+  // Feature continuation: intelligently extends lines and colors below banner edge
+  const desktopContinuation = state.extend ? detectBoundaryLines({
+    banner: state.bannerData,
+    bannerRect: desktopRect,
+    avatar: dGeom,
+    sensitivity: 0.58,
+  }) : null;
+
+  const mobileContinuation = state.extend ? detectBoundaryLines({
+    banner: state.bannerData,
+    bannerRect: desktopRect,
+    avatar: mGeom,
+    sensitivity: 0.58,
+  }) : null;
+
+  const activeContinuation = state.target === "mobile" ? mobileContinuation : desktopContinuation;
+
   state.avatarData = buildAvatar({
     banner: state.bannerData,
     portrait: customAvatarData,
@@ -184,6 +203,7 @@ function updateAvatar() {
     mode: state.customAvatar ? "portrait" : "banner",
     shape: state.shape,
     pageColor: [0, 0, 0],
+    continuation: activeContinuation,
     portraitControls: {
       scale: 1,
       offsetX: 0,
@@ -193,7 +213,10 @@ function updateAvatar() {
     },
     compatibility: {
       enabled: true,
+      bannerRect: desktopRect,
+      avatar: dGeom,
       sourceMapping: mapping,
+      continuation: activeContinuation,
     },
   });
 
@@ -571,6 +594,21 @@ function initEvents() {
     scheduleRender();
   });
 
+  // Extend Switcher [On | Off]
+  const extendOn = $("extendOn");
+  const extendOff = $("extendOff");
+
+  const setExtend = (enable) => {
+    state.extend = enable;
+    extendOn.classList.toggle("active", enable);
+    extendOff.classList.toggle("active", !enable);
+    scheduleRender();
+    showToast(`Feature extension: ${enable ? "On" : "Off"}`);
+  };
+
+  extendOn.addEventListener("click", () => setExtend(true));
+  extendOff.addEventListener("click", () => setExtend(false));
+
   // Reset Button
   $("resetBtn").addEventListener("click", () => {
     state.zoom = 1.0;
@@ -578,6 +616,9 @@ function initEvents() {
     state.panY = 0;
     state.customAvatar = null;
     state.avatarName = null;
+    state.extend = true;
+    $("extendOn").classList.add("active");
+    $("extendOff").classList.remove("active");
     zoomSlider.value = "100";
     zoomValue.textContent = "100%";
     scheduleRender();
