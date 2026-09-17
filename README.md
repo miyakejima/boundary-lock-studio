@@ -1,166 +1,127 @@
-# headerlock
+<p align="center">
+  <a href="https://miyakejima.github.io/headerlock/">
+    <img src="./assets/icon.png" width="96" height="96" alt="headerlock icon" style="border-radius: 22px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);">
+  </a>
+</p>
 
-**Local · Deterministic · AMOLED Minimalist**
+<h1 align="center">headerlock</h1>
 
-A precision studio for building seamless X (Twitter) profile pictures and banners that align perfectly across desktop and mobile. Runs entirely in your browser with zero server uploads, zero tracking, and pure client-side canvas rendering.
+<p align="center">
+  <strong>Seamless X (Twitter) Profile Alignment Studio</strong><br>
+  Pixel-perfect boundary lock across Desktop Web and Mobile App.
+</p>
+
+<p align="center">
+  <a href="https://miyakejima.github.io/headerlock/"><strong>Launch Web App</strong></a> ·
+  <a href="#how-it-works">How It Works</a> ·
+  <a href="#alignment-targets">Alignment Targets</a> ·
+  <a href="#verified-geometry">Verified Geometry</a> ·
+  <a href="#quick-start">Quick Start</a>
+</p>
 
 ---
 
-## Screenshots
+## Preview
 
-**Full studio UI — source panel, live preview, priority and continuation controls**
-![Full UI](docs/screenshots/full-ui.png)
+### Studio Dual-View (Light Theme)
+*Real-time side-by-side preview with continuous texture, direct canvas manipulation, and instant dock controls.*
 
-**Desktop web preview — 1500 × 500 banner with 400 × 400 profile overlay**
-![Desktop preview](docs/screenshots/studio-ui.png)
+![headerlock Studio Light Theme](docs/screenshots/headerlock-studio-light.png)
 
-**Android app preview — pixel-accurate avatar position verified against X Android 12.2**
-![Android preview](docs/screenshots/android-preview.png)
+### Desktop Profile Card
+*1500 × 500 banner with the exact 400 × 400 avatar crop and border ring.*
+
+![headerlock Desktop Web Card](docs/screenshots/headerlock-desktop-card.png)
 
 ---
 
 ## Why this exists
 
-X's desktop and Android apps place the avatar circle at slightly different positions on the banner. A banner that looks aligned on desktop can show a mismatched crop on Android — and vice versa. headerlock renders both previews simultaneously using geometry verified against the X Android APK (Jetpack Compose layout constants, dp-to-pixel conversion, and JPEG upload flattening behavior) so you can see the exact result before you upload anything.
+On X (Twitter), the banner and avatar are placed differently on web and mobile:
+- **Desktop Web**: The banner is displayed at approximately $2.99:1$ to $3:1$, and the circular avatar sits with its vertical center aligned directly on the bottom banner boundary ($Y=500$).
+- **Mobile App (Android 12.2 Compose)**: The banner is $3:1$, but the circular avatar sits shifted left ($52/411\text{ dp}$ from screen left) and overlaps the banner by only $28\text{ dp}$ (leaving the avatar center at $331.35\text{ px}$ on a $914\text{ px}$ layout).
+
+Because the two platforms place the avatar in different locations relative to the banner, an avatar that looks aligned on desktop will be broken on mobile, and vice versa.
+
+**headerlock** solves this by calculating the exact projective affine geometry and feature continuation between both layouts in real time, giving you a synchronized banner (`1500 × 500`) and avatar (`400 × 400`) ready for upload.
 
 ---
 
-## Quick start
+## Key Features
 
-**No npm install. No build step.** Just double-click `launch.bat`.
-
-```
-launch.bat
-```
-
-The launcher auto-detects Python or Node.js, picks a free port, and opens the studio in your browser. Keep the terminal window open while using the tool.
-
-**Requirements:** Python 3 _or_ Node.js — either one is enough.
-
----
-
-## Workflows
-
-### Set profile → build banner *(recommended)*
-
-Mirrors the native X profile-picture flow:
-
-1. Click **Select profile picture** and choose an image.
-2. Reposition and zoom the image inside the X-style square crop window.
-3. Click **Apply** — the profile is locked.
-4. The 1500 × 500 banner is rebuilt automatically from the locked crop.
-5. Export both files.
-
-The locked profile defines a single global source transform. It is applied uniformly across every banner pixel — no independent banner crop, circular correction, blending, or local warp. If the transform does not cover the full banner area, the studio reports the gap and fills it with the selected background.
-
-### Banner → profile *(original mode)*
-
-For projects that start from a banner:
-
-1. Choose **Banner → profile**.
-2. Upload a banner and adjust with the banner tools.
-3. Select Desktop, Android, or Shared layout.
-4. Export the generated profile and adjusted banner.
+- **Direct Canvas Manipulation**: Click and drag directly on either the Desktop or Mobile canvas to pan your image in real time. Scroll the mouse wheel to zoom.
+- **Three Precision Alignment Targets**:
+  - **Shared (Recommended)**: Joint compromise mapping balancing both desktop and mobile, with an integrity-floor fallback protecting mobile layout.
+  - **Desktop**: $100\%$ bit-exact alignment for Desktop web ($Y=500$).
+  - **Mobile**: $100\%$ bit-exact alignment for X Android Compose app ($331.35\text{ px}$ center).
+- **Feature Continuation**: Extends artistic patterns, lines, and gradients downward past the banner boundary so the bottom half of the avatar is never cut off or black.
+- **AMOLED Dark & Linen Light Themes**: High-contrast, anti-glare studio background gradients with cohesive micro-dot paper texture and an animated floating theme switch.
+- **One-Click Export**: Downloads `banner-1500x500.png` and `avatar-400x400.png` simultaneously.
+- **100% Client-Side Privacy**: No server uploads, no analytics, no cookies. Your images never leave your browser.
 
 ---
 
-## Layout modes
+## Alignment Targets
 
-| Mode | Description |
-|---|---|
-| **Best shared** *(recommended)* | One compromise alignment that works acceptably on both desktop and Android |
-| **Mobile-perfect** | Targets Android layout exactly; desktop may be slightly off |
-| **Desktop-exact** | Targets desktop layout exactly; Android may be slightly off |
-
-Desktop and Android priority controls are available in Banner → profile mode. They are hidden in Set profile mode so the editor behaves like the native X flow.
-
----
-
-## Output
-
-| File | Size | Format |
+| Target | Description | Ideal For |
 |---|---|---|
-| Profile picture | 400 × 400 | PNG |
-| Banner | 1500 × 500 | PNG |
-
-Exported files use the uploaded source filename followed by `-profile.png` and `-banner.png`.
-
----
-
-## Missing-area continuation
-
-When the source image does not cover the full banner width, the studio can extrapolate the banner edge by detecting straight features (lines, borders, geometry) that cross the boundary and extending them into the uncovered area. Detection sensitivity is adjustable.
+| **Shared** | Auto-balances seam alignment across both platforms simultaneously | General accounts viewed equally on web and mobile |
+| **Mobile** | Exact mathematical lock for X Mobile App (Android 12.2 Compose) | Mobile-first creators and audiences |
+| **Desktop** | Exact mathematical lock for X Desktop Web ($Y=500$ seam) | Desktop-first creators, portfolios, and web communities |
 
 ---
 
-## Android geometry
+## Verified Android Geometry
 
-The Android preview uses layout constants extracted from the X Android Jetpack Compose profile header (`com.x.profile.header` / `UserProfileHeaderUi.kt`), verified against:
+Derived from reverse-engineering the official X Android 12.2 release APK (`com.x.profile.header` / `UserProfileHeaderUi.kt`):
 
-- `12.1.1-release.0` (`versionCode 312011000`)
-- `12.2.0-release.0` (`versionCode 312020000`)
+| Property | Value | Mobile Preview ($914\text{ px}$) |
+|---|---|---|
+| Banner aspect ratio | $3.0$ | $914 \times 304.67\text{ px}$ |
+| Logical screen width | $411\text{ dp}$ | $914\text{ px}$ |
+| Profile horizontal padding | $12\text{ dp}$ | $26.69\text{ px}$ |
+| Avatar image size | $80\text{ dp}$ | $177.91\text{ px}$ ($R = 88.95\text{ px}$) |
+| Visible avatar overlap | $28\text{ dp}$ | $62.27\text{ px}$ |
+| Avatar center $Y$ | $bannerH + 12\text{ dp}$ | $331.35\text{ px}$ |
+| Avatar border | $2\text{ dp}$ overlay | $4.45\text{ px}$ inner overlay |
 
-Active constants (X 12.2 Compose path):
-
-| Property | Value |
-|---|---|
-| Banner aspect ratio | 3.0 |
-| Avatar image size | 80 dp |
-| Profile horizontal padding | 12 dp |
-| Under-banner layout reserve | 60 dp |
-| Visible avatar overlap | 28 dp |
-
-See [`ANDROID_REVERSE_ENGINEERING.md`](ANDROID_REVERSE_ENGINEERING.md) for the full geometric derivation, pixel-level verification results, and versioning notes.
+See [`ANDROID_REVERSE_ENGINEERING.md`](ANDROID_REVERSE_ENGINEERING.md) for the full geometric derivation.
 
 ---
 
-## Automated tests
+## Quick Start
 
-With Node.js installed:
+### Web App (Zero Install)
+Launch immediately in your browser:  
+👉 **[https://miyakejima.github.io/headerlock/](https://miyakejima.github.io/headerlock/)**
+
+### Run Locally
+No build step or `npm install` needed. Double-click `launch.bat` or run:
 
 ```bash
-node core.test.mjs
+# Using Node.js
+node server.js
+
+# Or using Python
+python -m http.server 8080
 ```
 
-The test suite covers: profile locking, safe cancellation, Apply-only profile replacement, automatic banner rebuilding, full-circle source ownership, and the original banner-derived rendering path.
-
-Additional integration tests:
-
-```bash
-node shared-mode-test.mjs
-node desktop-priority-shared-test.mjs
-node joint-adjustment-test.mjs
-node test-pair-aware.mjs
-node warp-test.mjs
-```
+Open `http://localhost:8080` in your browser.
 
 ---
 
-## Project layout
+## Automated Verification
 
+Run the built-in test suite to verify geometry calculations, shared mode optimizer, and seam precision:
+
+```bash
+node --test
 ```
-boundary-lock-studio/
-├── index.html                         # Studio web interface
-├── app.js                             # UI application logic
-├── core.js                            # Geometry engine and canvas rendering
-├── styles.css                         # UI styles
-├── server.js                          # Minimal Node.js static server
-├── launch.bat                         # Windows one-click launcher (Python or Node.js)
-├── core.test.mjs                      # Main unit test suite
-├── shared-mode-test.mjs               # Best Shared mode integration tests
-├── desktop-priority-shared-test.mjs   # Desktop priority integration tests
-├── joint-adjustment-test.mjs          # Multi-pass adjustment tests
-├── test-pair-aware.mjs                # Pair-aware banner integration tests
-├── warp-test.mjs                      # Coordinate warp tests
-├── weight-sweep.mjs                   # Parameter sweep diagnostic
-├── overlap-analysis.mjs               # Boundary overlap diagnostic
-├── ANDROID_REVERSE_ENGINEERING.md     # Android geometry derivation and verification
-├── VERIFICATION.md                    # Implementation evidence and QA log
-└── docs/screenshots/                  # UI screenshots
-```
+
+All 6 integration test suites verify layout geometry consistency to within $10^{-12}\text{ px}$.
 
 ---
 
 ## License
 
-ISC
+ISC © miyakejima

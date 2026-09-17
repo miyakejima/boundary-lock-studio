@@ -669,18 +669,32 @@ function initEvents() {
   });
 }
 
-// ── Startup ────────────────────────────────────────────────────
-state.sourceBanner = createDefaultBanner();
+// ── Startup (Zero-Flicker Authentic Default Banner) ───────────
 initEvents();
-scheduleRender();
 
-// Load authentic default demo banner (vegaz.png)
-if (typeof Image !== "undefined") {
-  const defaultImg = new Image();
-  defaultImg.onload = () => {
-    state.sourceBanner = defaultImg;
+function loadDefaultBanner() {
+  const imgEl = $("defaultBannerImg");
+  const onReady = (img) => {
+    state.sourceBanner = img;
     state.bannerName = "vegaz.png";
     scheduleRender();
   };
-  defaultImg.src = "./assets/default-banner.png?v=6.5.0";
+
+  if (imgEl && imgEl.complete && imgEl.naturalWidth > 0) {
+    onReady(imgEl);
+    return;
+  }
+
+  const defaultImg = imgEl || new Image();
+  defaultImg.onload = () => onReady(defaultImg);
+  defaultImg.onerror = () => {
+    state.sourceBanner = createDefaultBanner();
+    state.bannerName = "demo-banner.png";
+    scheduleRender();
+  };
+  if (!imgEl) {
+    defaultImg.src = "./assets/default-banner.png?v=6.5.0";
+  }
 }
+
+loadDefaultBanner();
