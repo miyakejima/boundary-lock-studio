@@ -12,36 +12,30 @@
 </p>
 
 <p align="center">
-  <a href="https://miyakejima.github.io/headerlock/"><strong>Launch Web App</strong></a> ·
-  <a href="#how-it-works">How It Works</a> ·
+  <a href="https://miyakejima.github.io/headerlock/"><strong>🚀 Launch Web App</strong></a> ·
+  <a href="#interactive-demo">Interactive Demo</a> ·
+  <a href="#why-this-exists">Why This Exists</a> ·
+  <a href="#studio-tour">Studio Tour</a> ·
   <a href="#alignment-targets">Alignment Targets</a> ·
-  <a href="#verified-geometry">Verified Geometry</a> ·
-  <a href="#quick-start">Quick Start</a>
+  <a href="#verified-geometry">Verified Geometry</a>
+</p>
+
+<p align="center">
+  <em>Free, full-featured client-side creative studio. Open and use directly in your browser:</em><br>
+  👉 <a href="https://miyakejima.github.io/headerlock/"><strong>https://miyakejima.github.io/headerlock/</strong></a>
 </p>
 
 ---
 
-## Preview
+## Interactive Demo
 
-### Studio Workstation (AMOLED Dark Theme - Zero Scroll)
-*Professional two-column workstation: permanent left-hand creative tool deck with zero canvas overlap, paired with a wide Desktop Web card ($840\text{px}$) and compact Mobile App card ($450\text{px}$) side-by-side with zero vertical page scrolling at 100% zoom.*
+<p align="center">
+  <a href="https://miyakejima.github.io/headerlock/">
+    <img src="docs/headerlock-demo.gif" alt="headerlock interactive studio walkthrough demo" width="100%" style="border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.4);">
+  </a>
+</p>
 
-![headerlock Studio Workstation Dark Theme](docs/screenshots/workstation-both-noscroll.png)
-
-### Studio Workstation (Linen Light Theme)
-*High-contrast light workstation layout with dedicated Tone & Color adjustments, live dual-seam score badge (`Desktop: 88% · Mobile: 85%`), and authentic X profile geometry.*
-
-![headerlock Studio Workstation Light Theme](docs/screenshots/workstation-light-noscroll.png)
-
-### Focused View Modes (Desktop & Mobile)
-*Need to inspect fine details? Click `Desktop` or `Mobile` in the header switcher (`[Desktop] [Both] [Mobile]`) to instantly isolate and expand either card to a massive high-resolution focus view ($1160\text{px}$ for Desktop, $620\text{px}$ for Mobile).*
-
-![headerlock Desktop Focus Mode](docs/screenshots/workstation-desktop-focus.png)
-
-### Creative FX & Style Presets
-*Real-time 3×3 Sobel convolution kernel (find edges), Sony Vegas negative color invert, analog film grain, vignette, and instant Cyberpunk/Noir presets—with 100% boundary lock integrity preserved.*
-
-![headerlock Creative FX Workstation](docs/screenshots/workstation-fx-dark.png)
+*Live walkthrough: real-time tone adjustments, Cyberpunk and Sony Vegas shaders, 3×3 Sobel convolution edge detection, 90° lossless rotation, direct canvas panning, and instant switching between side-by-side workstation and 1160px desktop focus views.*
 
 ---
 
@@ -57,6 +51,30 @@ Because the two platforms place the avatar in different locations relative to th
 
 ---
 
+## Studio Tour
+
+### 1. Dual-View Workstation (Zero Page Scrolling)
+*Professional two-column workstation: permanent left-hand creative tool deck with zero canvas overlap, paired with an elongated Desktop Web card ($840\text{px}$) and compact Mobile App card ($450\text{px}$) side-by-side with zero vertical page scrolling at 100% zoom.*
+
+![headerlock Studio Workstation Dark Theme](docs/screenshots/workstation-both-noscroll.png)
+
+### 2. High-Contrast Linen Light Theme
+*Crisp light workstation layout with dedicated Tone & Color adjustments, live dual-seam score badge (`Desktop: 91% · Mobile: 92%`), and authentic X profile geometry.*
+
+![headerlock Studio Workstation Light Theme](docs/screenshots/workstation-light-noscroll.png)
+
+### 3. Focused View Modes (Desktop & Mobile)
+*Need to inspect fine details? Click `Desktop` or `Mobile` in the header switcher (`[Desktop] [Both] [Mobile]`) to instantly isolate and expand either card to a massive high-resolution focus view ($1160\text{px}$ for Desktop, $620\text{px}$ for Mobile).*
+
+![headerlock Desktop Focus Mode](docs/screenshots/workstation-desktop-focus.png)
+
+### 4. Creative FX, Shaders & Style Presets
+*Real-time 3×3 Sobel convolution kernel (find edges), Sony Vegas negative color invert, analog film grain, vignette, and instant Cyberpunk/Noir presets—with 100% boundary lock integrity preserved.*
+
+![headerlock Creative FX Workstation](docs/screenshots/workstation-fx-cyberpunk.png)
+
+---
+
 ## Key Features
 
 - **Studio Workstation Architecture**:
@@ -64,7 +82,7 @@ Because the two platforms place the avatar in different locations relative to th
   - **Permanent Left Creative Deck**: Dedicated control sidebar for adjustments, creative shaders, transform tools, and dual-seam balancing. Never covers the artwork while you tune sliders or toggles.
   - **Differentiated Canvas Lengths**: In `Both` mode, Desktop Web is rendered with long horizontal span ($840\text{px}$) while Mobile App sits alongside as a compact phone frame ($450\text{px}$).
   - **Center-Balanced Focus Modes**: Clean `[Desktop]` `[Both]` `[Mobile]` switcher in the header. Activating `Desktop` or `Mobile` isolates that view and expands it into an expansive focal display ($1160\text{px}$ / $620\text{px}$) with smooth transitions.
-- **Tone & Color Adjustments**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint with live readouts and double-click reset.
+- **Tone & Color Adjustments**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint with live readouts, double-click reset, and zero text selection artifacts.
 - **Creative FX & Shaders**: Sony Vegas Negative Invert, 3×3 Sobel convolution kernel (Find Edges / Contour Overlay with adjustable boost), Analog Film Grain, and Vignette.
 - **1-Click Style Presets**: Cyberpunk, Noir, Matrix, Sony Vegas, and Default.
 - **Dual-Seam Optimizer & Crop Balance**: Multi-angle bilinear seam optimizer maximizing simultaneous desktop and mobile seam integrity ($\min(S_D, S_M)$), with live score readouts and manual override.
@@ -76,8 +94,7 @@ Because the two platforms place the avatar in different locations relative to th
 - **Feature Continuation**: Extends artistic patterns, lines, and gradients downward past the banner boundary so the bottom half of the avatar is never cut off or black.
 - **AMOLED Dark & Linen Light Themes**: High-contrast, anti-glare studio background gradients with cohesive micro-dot paper texture and an animated theme switch.
 - **One-Click Export**: Downloads `banner-1500x500.png` and `avatar-400x400.png` simultaneously.
-- **100% Client-Side Privacy**: No server uploads, no analytics, no cookies. Your images never leave your browser.
-
+- **100% Client-Side Privacy**: Runs completely inside your web browser. Your images never leave your machine.
 
 ---
 
@@ -109,13 +126,13 @@ See [`ANDROID_REVERSE_ENGINEERING.md`](ANDROID_REVERSE_ENGINEERING.md) for the f
 
 ---
 
-## Quick Start
+## Launch Web App
 
-### Web App (Zero Install)
+### Open in Browser (Zero Install)
 Launch immediately in your browser:  
 👉 **[https://miyakejima.github.io/headerlock/](https://miyakejima.github.io/headerlock/)**
 
-### Run Locally
+### Run Locally (Optional)
 No build step or `npm install` needed. Double-click `launch.bat` or run:
 
 ```bash
