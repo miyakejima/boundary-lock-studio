@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=6.2.1" />
+  <link rel="stylesheet" href="./styles.css?v=6.4.0" />
 </head>
 <body>
   <!-- Drag and drop full window overlay -->
@@ -37,14 +37,9 @@
     </div>
 
     <div class="header-right">
-      <button id="uploadBannerBtn" class="btn btn-ghost" type="button" title="Upload image as Banner (1500 × 500)">
+      <button id="uploadBannerBtn" class="btn btn-ghost" type="button" title="Upload image (1500 × 500 or larger)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        <span>Upload Banner</span>
-      </button>
-
-      <button id="uploadAvatarBtn" class="btn btn-ghost" type="button" title="Optional: Upload custom profile avatar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Upload Avatar</span>
+        <span>Upload Image</span>
       </button>
 
       <button id="exportBtn" class="btn btn-solid" type="button" title="Export aligned banner and avatar PNGs">
@@ -144,13 +139,30 @@
     </nav>
   </main>
 
+  <!-- Floating Theme Toggle Button -->
+  <button id="themeToggleBtn" class="theme-toggle" type="button" title="Toggle Light / Dark Theme" aria-label="Toggle theme">
+    <svg class="theme-icon sun-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2"/>
+      <path d="M12 20v2"/>
+      <path d="m4.93 4.93 1.41 1.41"/>
+      <path d="m17.66 17.66 1.41 1.41"/>
+      <path d="M2 12h2"/>
+      <path d="M20 12h2"/>
+      <path d="m6.34 17.66-1.41 1.41"/>
+      <path d="m19.07 4.93-1.41 1.41"/>
+    </svg>
+    <svg class="theme-icon moon-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+    </svg>
+  </button>
+
   <!-- Hidden elements for file upload -->
   <input id="bannerInput" type="file" accept="image/*" style="display: none;" />
-  <input id="avatarInput" type="file" accept="image/*" style="display: none;" />
 
   <!-- Clean Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="./app.js?v=6.2.1"></script>
+  <script type="module" src="./app.js?v=6.4.0"></script>
 </body>
 </html>

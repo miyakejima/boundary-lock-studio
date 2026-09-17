@@ -7,14 +7,13 @@ import {
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.2.1";
+} from "./core.js?v=6.4.0";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
   sourceBanner: null,    // Image or Canvas element
   bannerName: "banner.png",
-  customAvatar: null,    // Optional custom profile image
-  avatarName: null,
+  theme: localStorage.getItem("headerlock-theme") || "dark", // "dark" | "light"
   zoom: 1.0,
   panX: 0,
   panY: 0,
@@ -52,7 +51,7 @@ const desktopCtx = desktopCanvas.getContext("2d");
 const mobileCanvas = $("mobileCanvas");
 const mobileCtx = mobileCanvas.getContext("2d");
 const bannerInput = $("bannerInput");
-const avatarInput = $("avatarInput");
+const themeToggleBtn = $("themeToggleBtn");
 const toastEl = $("toast");
 const dropOverlay = $("dropOverlay");
 
@@ -183,22 +182,9 @@ function updateAvatar() {
       banner: state.sceneData,
       primaryMapping: dMap,
       secondaryMapping: mMap,
-      pageColor: [0, 0, 0],
+      pageColor: state.theme === "light" ? [255, 255, 255] : [0, 0, 0],
     });
     mapping = opt.mapping || dMap;
-  }
-
-  // If custom avatar is uploaded, extract its ImageData
-  let customAvatarData = null;
-  if (state.customAvatar) {
-    const pCanvas = document.createElement("canvas");
-    const pW = state.customAvatar.naturalWidth || state.customAvatar.width || 400;
-    const pH = state.customAvatar.naturalHeight || state.customAvatar.height || 400;
-    pCanvas.width = pW;
-    pCanvas.height = pH;
-    const pCtx = pCanvas.getContext("2d");
-    pCtx.drawImage(state.customAvatar, 0, 0);
-    customAvatarData = pCtx.getImageData(0, 0, pW, pH);
   }
 
   // Feature continuation: active if extend is enabled and scene reaches bottom of image
@@ -221,21 +207,15 @@ function updateAvatar() {
 
   state.avatarData = buildAvatar({
     banner: state.sceneData,
-    portrait: customAvatarData,
+    portrait: null,
     outputSize: 400,
     bannerRect: sceneRect,
     avatar: activeAvatarGeom,
-    mode: state.customAvatar ? "portrait" : "banner",
+    mode: "banner",
     shape: state.shape,
-    pageColor: [0, 0, 0],
+    pageColor: state.theme === "light" ? [255, 255, 255] : [0, 0, 0],
     continuation: activeContinuation,
-    portraitControls: {
-      scale: 1,
-      offsetX: 0,
-      offsetY: 0,
-      rotation: 0,
-      opacity: 1,
-    },
+    portraitControls: null,
     compatibility: {
       enabled: true,
       bannerRect: sceneRect,
@@ -300,7 +280,7 @@ function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4) {
       ctx.roundRect(cx - radius, cy - radius, size, size, r);
     }
     ctx.lineWidth = borderWidth;
-    ctx.strokeStyle = "#000000";
+    ctx.strokeStyle = state.theme === "light" ? "#ffffff" : "#000000";
     ctx.stroke();
     ctx.restore();
   }
@@ -308,20 +288,21 @@ function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4) {
 
 // ── Render Desktop Preview ─────────────────────────────────────
 function renderDesktop() {
+  const isLight = state.theme === "light";
   const w = desktopCanvas.width;
   const h = desktopCanvas.height;
-  desktopCtx.fillStyle = "#000000";
+  desktopCtx.fillStyle = isLight ? "#ffffff" : "#000000";
   desktopCtx.fillRect(0, 0, w, h);
 
   // 1. Draw 1500 × 500 banner directly from dedicated bannerBuffer
   desktopCtx.drawImage(bannerBuffer, 0, 0, 1500, 500);
 
   // 2. Profile metadata below banner
-  desktopCtx.fillStyle = "#ffffff";
+  desktopCtx.fillStyle = isLight ? "#0f1419" : "#ffffff";
   desktopCtx.font = "700 32px 'Inter', -apple-system, sans-serif";
   desktopCtx.fillText("Your Name", 420, 570);
 
-  desktopCtx.fillStyle = "#71717a";
+  desktopCtx.fillStyle = isLight ? "#536471" : "#71717a";
   desktopCtx.font = "500 20px 'Inter', -apple-system, sans-serif";
   desktopCtx.fillText("@handle · desktop web", 420, 608);
 
@@ -331,9 +312,10 @@ function renderDesktop() {
 
 // ── Render Mobile Preview ──────────────────────────────────────
 function renderMobile() {
+  const isLight = state.theme === "light";
   const w = mobileCanvas.width;
   const h = mobileCanvas.height;
-  mobileCtx.fillStyle = "#000000";
+  mobileCtx.fillStyle = isLight ? "#ffffff" : "#000000";
   mobileCtx.fillRect(0, 0, w, h);
 
   const bannerH = w / 3; // 914 / 3 = ~304.7px
@@ -342,20 +324,20 @@ function renderMobile() {
   mobileCtx.drawImage(bannerBuffer, 0, 0, 1500, 500, 0, 0, w, bannerH);
 
   // 2. Top bar vignette & mobile controls
-  mobileCtx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  mobileCtx.fillStyle = isLight ? "rgba(255, 255, 255, 0.65)" : "rgba(0, 0, 0, 0.35)";
   mobileCtx.fillRect(0, 0, w, 80);
 
-  mobileCtx.fillStyle = "#ffffff";
+  mobileCtx.fillStyle = isLight ? "#0f1419" : "#ffffff";
   mobileCtx.font = "700 28px 'Inter', -apple-system, sans-serif";
   mobileCtx.fillText("‹", 32, 54);
 
   // 3. Profile metadata below banner
   const textY = bannerH + 130;
-  mobileCtx.fillStyle = "#ffffff";
+  mobileCtx.fillStyle = isLight ? "#0f1419" : "#ffffff";
   mobileCtx.font = "800 34px 'Inter', -apple-system, sans-serif";
   mobileCtx.fillText("Your Name", 36, textY);
 
-  mobileCtx.fillStyle = "#71717a";
+  mobileCtx.fillStyle = isLight ? "#536471" : "#71717a";
   mobileCtx.font = "600 22px 'Inter', -apple-system, sans-serif";
   mobileCtx.fillText("@handle · mobile app", 36, textY + 40);
 
@@ -386,13 +368,12 @@ function scheduleRender() {
 }
 
 // ── Interactive Drag & Zoom ────────────────────────────────────
-function setupDrag(canvas, getScale, isInsideAvatar) {
+function setupDrag(canvas, getScale) {
   let isDragging = false;
   let startX = 0;
   let startY = 0;
   let initialPanX = 0;
   let initialPanY = 0;
-  let moved = false;
 
   canvas.addEventListener("pointerdown", (e) => {
     startX = e.clientX;
@@ -400,7 +381,6 @@ function setupDrag(canvas, getScale, isInsideAvatar) {
     initialPanX = state.panX;
     initialPanY = state.panY;
     isDragging = true;
-    moved = false;
     canvas.setPointerCapture(e.pointerId);
   });
 
@@ -408,27 +388,14 @@ function setupDrag(canvas, getScale, isInsideAvatar) {
     if (!isDragging) return;
     const dx = e.clientX - startX;
     const dy = e.clientY - startY;
-    if (Math.hypot(dx, dy) > 3) {
-      moved = true;
-    }
     const factor = getScale();
     state.panX = initialPanX + dx * factor;
     state.panY = initialPanY + dy * factor;
     scheduleRender();
   });
 
-  canvas.addEventListener("pointerup", (e) => {
-    if (!isDragging) return;
+  canvas.addEventListener("pointerup", () => {
     isDragging = false;
-    // Click on avatar circle triggers avatar upload
-    if (!moved && isInsideAvatar) {
-      const rect = canvas.getBoundingClientRect();
-      const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
-      const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
-      if (isInsideAvatar(canvasX, canvasY)) {
-        avatarInput.click();
-      }
-    }
   });
 
   canvas.addEventListener("pointercancel", () => {
@@ -479,13 +446,13 @@ function exportAssets() {
 function readFileAsImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = () => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Unable to decode image"));
-      img.src = e.target.result;
+      img.onerror = (err) => reject(new Error("Failed to decode image: " + err));
+      img.src = reader.result;
     };
-    reader.onerror = () => reject(new Error("Failed to read image file"));
+    reader.onerror = (err) => reject(new Error("Failed to read file: " + err));
     reader.readAsDataURL(file);
   });
 }
@@ -520,33 +487,26 @@ async function loadBannerFile(file) {
   }
 }
 
-// ── Load Avatar Image from File (Optional Profile Picture) ──────
-async function loadAvatarFile(file) {
-  if (!file || !file.type.startsWith("image/")) return;
-  try {
-    let img;
-    if (typeof createImageBitmap === "function") {
-      try {
-        img = await createImageBitmap(file, { imageOrientation: "from-image" });
-      } catch {
-        img = await readFileAsImage(file);
-      }
-    } else {
-      img = await readFileAsImage(file);
-    }
-
-    state.customAvatar = img;
-    state.avatarName = file.name;
-    scheduleRender();
-    showToast(`Avatar loaded: ${file.name}`);
-  } catch (err) {
-    console.error("Avatar load error:", err);
-    showToast("Failed to load avatar: " + err.message);
-  }
-}
-
 // ── Initialize Event Listeners ─────────────────────────────────
 function initEvents() {
+  // Apply saved theme on boot
+  if (state.theme === "light") {
+    document.documentElement.setAttribute("data-theme", "light");
+  }
+
+  // Theme Toggle Button
+  themeToggleBtn.addEventListener("click", () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    if (state.theme === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    localStorage.setItem("headerlock-theme", state.theme);
+    showToast(`Theme: ${state.theme === "light" ? "Light" : "Dark"}`);
+    scheduleRender();
+  });
+
   // View Switcher [Both | Desktop | Mobile]
   const container = $("viewsContainer");
   const viewBoth = $("viewBoth");
@@ -639,15 +599,13 @@ function initEvents() {
     state.zoom = 1.0;
     state.panX = 0;
     state.panY = 0;
-    state.customAvatar = null;
-    state.avatarName = null;
     state.extend = true;
     $("extendOn").classList.add("active");
     $("extendOff").classList.remove("active");
     zoomSlider.value = "100";
     zoomValue.textContent = "100%";
     scheduleRender();
-    showToast("Reset pan, zoom & avatar");
+    showToast("Reset pan & zoom");
   });
 
   // Upload Buttons
@@ -656,32 +614,11 @@ function initEvents() {
     if (e.target.files?.[0]) loadBannerFile(e.target.files[0]);
   });
 
-  $("uploadAvatarBtn").addEventListener("click", () => avatarInput.click());
-  avatarInput.addEventListener("change", (e) => {
-    if (e.target.files?.[0]) loadAvatarFile(e.target.files[0]);
-  });
-
   $("exportBtn").addEventListener("click", exportAssets);
 
-  // Setup Canvas Dragging with avatar click detection
-  setupDrag(
-    desktopCanvas,
-    () => 1500 / desktopCanvas.getBoundingClientRect().width,
-    (x, y) => Math.hypot(x - 210.7, y - 500) <= 166.5
-  );
-
-  setupDrag(
-    mobileCanvas,
-    () => 914 / mobileCanvas.getBoundingClientRect().width,
-    (x, y) => {
-      const w = mobileCanvas.width;
-      const bannerH = w / 3;
-      const cx = (52 / 411) * w;
-      const cy = bannerH + (12 / 411) * bannerH;
-      const r = (40 / 411) * w;
-      return Math.hypot(x - cx, y - cy) <= r;
-    }
-  );
+  // Setup Canvas Dragging
+  setupDrag(desktopCanvas, () => 1500 / desktopCanvas.getBoundingClientRect().width);
+  setupDrag(mobileCanvas, () => 914 / mobileCanvas.getBoundingClientRect().width);
 
   // Global Drag and Drop (defaults to loading as Banner)
   let dragCounter = 0;
