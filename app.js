@@ -1178,6 +1178,12 @@ function initEvents() {
     }
   });
 
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && activeRailTab) {
+      closeRailFlyout();
+    }
+  });
+
   // ── Transform Panel Actions ─────────────────────────────────
   const toolMirrorX = $("toolMirrorX");
   const toolFlipY = $("toolFlipY");
