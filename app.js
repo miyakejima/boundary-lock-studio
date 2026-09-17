@@ -7,7 +7,7 @@ import {
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.4.2";
+} from "./core.js?v=6.5.0";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
@@ -177,14 +177,14 @@ function updateAvatar() {
   } else if (state.target === "mobile") {
     mapping = mMap;
   } else {
-    // Shared compromise mapping
+    // Shared compromise mapping (Android protected by integrity floor fallback)
     const opt = optimizeSharedAffineMapping({
       banner: state.sceneData,
-      primaryMapping: dMap,
-      secondaryMapping: mMap,
+      primaryMapping: mMap,
+      secondaryMapping: dMap,
       pageColor: state.theme === "light" ? [255, 255, 255] : [0, 0, 0],
     });
-    mapping = opt.mapping || dMap;
+    mapping = opt.mapping || mMap;
   }
 
   // Feature continuation: active if extend is enabled and scene reaches bottom of image
@@ -249,8 +249,11 @@ function putRawImage(context, image, dx = 0, dy = 0) {
 }
 
 // ── Draw Avatar on Canvas ──────────────────────────────────────
-function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4) {
+function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4, isOverlayBorder = false) {
   if (!state.avatarData) return;
+
+  const isLight = state.theme === "light";
+  const borderColor = isLight ? "#ffffff" : "#000000";
 
   ctx.save();
   ctx.beginPath();
@@ -266,10 +269,25 @@ function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4) {
 
   // Draw avatar directly from dedicated offscreen avatarBuffer
   ctx.drawImage(avatarBuffer, cx - radius, cy - radius, radius * 2, radius * 2);
+
+  // If overlay border (like Android Compose), stroke inside the clip
+  if (borderWidth > 0 && isOverlayBorder) {
+    ctx.beginPath();
+    if (state.shape === "circle") {
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    } else {
+      const size = radius * 2;
+      const r = radius * 0.28;
+      ctx.roundRect(cx - radius, cy - radius, size, size, r);
+    }
+    ctx.lineWidth = borderWidth * 2;
+    ctx.strokeStyle = borderColor;
+    ctx.stroke();
+  }
   ctx.restore();
 
-  // Draw border ring
-  if (borderWidth > 0) {
+  // If outside border (like Desktop web), stroke centered on border ring
+  if (borderWidth > 0 && !isOverlayBorder) {
     ctx.save();
     ctx.beginPath();
     if (state.shape === "circle") {
@@ -280,7 +298,7 @@ function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4) {
       ctx.roundRect(cx - radius, cy - radius, size, size, r);
     }
     ctx.lineWidth = borderWidth;
-    ctx.strokeStyle = state.theme === "light" ? "#ffffff" : "#000000";
+    ctx.strokeStyle = borderColor;
     ctx.stroke();
     ctx.restore();
   }
@@ -307,7 +325,7 @@ function renderDesktop() {
   desktopCtx.fillText("@handle · desktop web", 420, 608);
 
   // 3. Desktop Avatar: centerX: 210.7, centerY: 500, radius: 166.5
-  drawAvatarCircle(desktopCtx, 210.7, 500, 166.5, 8);
+  drawAvatarCircle(desktopCtx, 210.7, 500, 166.5, 8, false);
 }
 
 // ── Render Mobile Preview ──────────────────────────────────────
@@ -346,11 +364,10 @@ function renderMobile() {
   mobileCtx.font = "600 22px 'Inter', -apple-system, sans-serif";
   mobileCtx.fillText("@handle · mobile app", 36, textY + 40);
 
-  // 4. Mobile Avatar (verified Android Compose geometry)
-  const cx = (52 / 411) * w;
-  const cy = bannerH + (12 / 411) * bannerH;
-  const radius = (40 / 411) * w;
-  drawAvatarCircle(mobileCtx, cx, cy, radius, 6);
+  // 4. Mobile Avatar (verified Android Compose geometry from PRESETS.androidApp)
+  const mobileBannerRect = { x: 0, y: 0, width: w, height: bannerH };
+  const mGeom = geometryFromPreset(PRESETS.androidApp, mobileBannerRect);
+  drawAvatarCircle(mobileCtx, mGeom.centerX, mGeom.centerY, mGeom.outerRadius, mGeom.borderWidth, true);
 }
 
 // ── Main Render Pipeline ───────────────────────────────────────
@@ -621,9 +638,9 @@ function initEvents() {
 
   $("exportBtn").addEventListener("click", exportAssets);
 
-  // Setup Canvas Dragging
+  // Setup Canvas Dragging (both canvas scale against 1500 banner buffer coordinate system)
   setupDrag(desktopCanvas, () => 1500 / desktopCanvas.getBoundingClientRect().width);
-  setupDrag(mobileCanvas, () => 914 / mobileCanvas.getBoundingClientRect().width);
+  setupDrag(mobileCanvas, () => 1500 / mobileCanvas.getBoundingClientRect().width);
 
   // Global Drag and Drop (defaults to loading as Banner)
   let dragCounter = 0;
@@ -665,5 +682,5 @@ if (typeof Image !== "undefined") {
     state.bannerName = "vegaz.png";
     scheduleRender();
   };
-  defaultImg.src = "./assets/default-banner.png?v=6.4.2";
+  defaultImg.src = "./assets/default-banner.png?v=6.5.0";
 }

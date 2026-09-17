@@ -403,4 +403,18 @@ const localizedFailureScore = calculateLayoutSeamScore({
 assert.ok(localizedFailureScore.score < partialExactScore.score - 10,
   "a localized duplicated-window-style failure must materially reduce the exact-artifact score");
 
+// Verify that Mobile Target geometry scaled from 1500x500 banner buffer to 914px canvas is bit-exact
+const canvasW = 914;
+const canvasBannerH = canvasW / 3;
+const mobileCanvasRect = { x: 0, y: 0, width: canvasW, height: canvasBannerH };
+const mobileCanvasGeom = geometryFromPreset(PRESETS.androidApp, mobileCanvasRect);
+const bufferRect = { x: 0, y: 0, width: 1500, height: 500 };
+const bufferGeom = geometryFromPreset(PRESETS.androidApp, bufferRect);
+const scaleRatio = canvasW / 1500;
+
+assert.ok(Math.abs(mobileCanvasGeom.centerX - bufferGeom.centerX * scaleRatio) < 1e-12, "Mobile canvas centerX must match scaled buffer centerX");
+assert.ok(Math.abs(mobileCanvasGeom.centerY - bufferGeom.centerY * scaleRatio) < 1e-12, "Mobile canvas centerY must match scaled buffer centerY");
+assert.ok(Math.abs(mobileCanvasGeom.outerRadius - bufferGeom.outerRadius * scaleRatio) < 1e-12, "Mobile canvas outerRadius must match scaled buffer outerRadius");
+assert.ok(Math.abs(mobileCanvasGeom.borderWidth - bufferGeom.borderWidth * scaleRatio) < 1e-12, "Mobile canvas borderWidth must match scaled buffer borderWidth");
+
 console.log("Boundary Lock core tests passed");
