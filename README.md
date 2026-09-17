@@ -54,15 +54,15 @@ Because the two platforms place the avatar in different locations relative to th
 
 ## Key Features
 
-- **Collapsible Creative Tool Rail**: Sleek, unbloated vertical icon rail on the left dock with dedicated flyout panels:
+- **Studio Creative Toolbar & Expandable Shelf**: Sleek, unobtrusive toolbar situated directly above the preview cards with 0% canvas overlap and dedicated shelf panels:
   - **Transforms**: 90° step lossless rotation, horizontal mirror (Flip X), and vertical flip (Flip Y).
   - **Tone & Color**: Precision sliders for Brightness, Contrast, Saturation, Hue Shift, and Warmth/Tint.
   - **Creative FX & Shaders**: Sony Vegas Negative Invert, 3×3 Sobel convolution kernel (Find Edges / Contour Overlay with adjustable boost), Analog Film Grain, and Vignette.
   - **1-Click Style Presets**: Cyberpunk, Noir, Matrix, Sony Vegas, and Default.
-  - **Crop Balance Slider**: Fine-tune the compromise ratio (0% Android $\leftrightarrow$ 100% Desktop) in Shared mode with automatic optimizer fallback.
+  - **Dual-Seam Optimizer & Crop Balance**: Multi-angle bilinear seam optimizer maximizing simultaneous desktop and mobile seam integrity ($\min(S_D, S_M)$), with live score readouts and manual override.
 - **Direct Canvas Manipulation**: Click and drag directly on either the Desktop or Mobile canvas to pan your image in real time. Scroll the mouse wheel to zoom.
 - **Three Precision Alignment Targets**:
-  - **Shared (Recommended)**: Joint compromise mapping balancing both desktop and mobile, with an integrity-floor fallback protecting mobile layout.
+  - **Shared (Recommended)**: Mathematical dual-seam optimizer finding the sweet-spot mapping that locks both desktop and mobile borders simultaneously.
   - **Desktop**: $100\%$ bit-exact alignment for Desktop web ($Y=500$).
   - **Mobile**: $100\%$ bit-exact alignment for X Android Compose app ($331.35\text{ px}$ center).
 - **Feature Continuation**: Extends artistic patterns, lines, and gradients downward past the banner boundary so the bottom half of the avatar is never cut off or black.

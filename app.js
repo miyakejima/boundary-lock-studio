@@ -4,6 +4,7 @@ import {
   geometryFromPreset,
   sourceMappingFromLayout,
   optimizeSharedAffineMapping,
+  sampleBannerWithContinuation,
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
@@ -386,6 +387,82 @@ function updateWorkingBanner() {
   state.bannerData = bannerBufferCtx.getImageData(0, 0, width, bannerH);
 }
 
+// ── Fast Seam Score Evaluation ─────────────────────────────────
+function evaluateSeamScore(banner, candidateMapping, expectedMapping, fill) {
+  const rings = [
+    { radius: 0.86, weight: 0.14 },
+    { radius: 0.91, weight: 0.20 },
+    { radius: 0.95, weight: 0.26 },
+    { radius: 0.985, weight: 0.40 },
+  ];
+  const angles = 72;
+  let diff = 0;
+  let totalWeight = 0;
+  for (let r = 0; r < rings.length; r++) {
+    const ring = rings[r];
+    for (let idx = 0; idx < angles; idx++) {
+      const angle = (idx / angles) * Math.PI * 2;
+      const qx = Math.cos(angle) * ring.radius;
+      const qy = Math.sin(angle) * ring.radius;
+      const ax = candidateMapping.centerX + qx * candidateMapping.radiusX;
+      const ay = candidateMapping.centerY + qy * candidateMapping.radiusY;
+      const ex = expectedMapping.centerX + qx * expectedMapping.radiusX;
+      const ey = expectedMapping.centerY + qy * expectedMapping.radiusY;
+      const cAct = sampleBannerWithContinuation(banner, ax, ay, null, fill);
+      const cExp = sampleBannerWithContinuation(banner, ex, ey, null, fill);
+      const d = (Math.abs(cAct[0] - cExp[0]) + Math.abs(cAct[1] - cExp[1]) + Math.abs(cAct[2] - cExp[2])) / 3;
+      diff += d * ring.weight;
+      totalWeight += ring.weight;
+    }
+  }
+  const meanDiff = diff / Math.max(1, totalWeight);
+  return Math.round(100 * Math.exp((-3.5 * meanDiff) / 255));
+}
+
+// ── Global Dual-Seam Optimizer ─────────────────────────────────
+function findOptimalSharedMapping(banner, dMap, mMap, fill) {
+  let bestWeight = 0.5;
+  let bestObjective = -Infinity;
+  let bestD = 0;
+  let bestM = 0;
+
+  for (let i = 0; i <= 20; i++) {
+    const w = i / 20;
+    const candidate = interpolateSourceMappings(mMap, dMap, w);
+    const dScore = evaluateSeamScore(banner, candidate, dMap, fill);
+    const mScore = evaluateSeamScore(banner, candidate, mMap, fill);
+    const objective = Math.min(dScore, mScore) * 1000 + (dScore + mScore);
+    if (objective > bestObjective) {
+      bestObjective = objective;
+      bestWeight = w;
+      bestD = dScore;
+      bestM = mScore;
+    }
+  }
+
+  // Fine refinement around bestWeight
+  for (let step = -4; step <= 4; step++) {
+    const w = Math.max(0, Math.min(1, bestWeight + step * 0.0125));
+    const candidate = interpolateSourceMappings(mMap, dMap, w);
+    const dScore = evaluateSeamScore(banner, candidate, dMap, fill);
+    const mScore = evaluateSeamScore(banner, candidate, mMap, fill);
+    const objective = Math.min(dScore, mScore) * 1000 + (dScore + mScore);
+    if (objective > bestObjective) {
+      bestObjective = objective;
+      bestWeight = w;
+      bestD = dScore;
+      bestM = mScore;
+    }
+  }
+
+  return {
+    weight: bestWeight,
+    mapping: interpolateSourceMappings(mMap, dMap, bestWeight),
+    desktopScore: bestD,
+    mobileScore: bestM,
+  };
+}
+
 // ── Compute Aligned Avatar (400 × 400) ─────────────────────────
 function updateAvatar() {
   if (!state.sceneData || !state.bannerData) return;
@@ -396,29 +473,12 @@ function updateAvatar() {
   const dGeom = geometryFromPreset(PRESETS.desktop, desktopRect);
   const mGeom = geometryFromPreset(PRESETS.androidApp, desktopRect);
 
-  let mapping = null;
+  const fill = state.theme === "light" ? [255, 255, 255, 255] : [0, 0, 0, 255];
   const dMap = sourceMappingFromLayout({ banner: state.sceneData, bannerRect: sceneRect, avatar: dGeom });
   const mMap = sourceMappingFromLayout({ banner: state.sceneData, bannerRect: sceneRect, avatar: mGeom });
 
-  if (state.target === "desktop") {
-    mapping = dMap;
-  } else if (state.target === "mobile") {
-    mapping = mMap;
-  } else {
-    // Shared compromise mapping (Android protected by integrity floor fallback)
-    const opt = optimizeSharedAffineMapping({
-      banner: state.sceneData,
-      primaryMapping: mMap,
-      secondaryMapping: dMap,
-      pageColor: state.theme === "light" ? [255, 255, 255] : [0, 0, 0],
-    });
-    state.cropBalance.autoWeight = opt.equivalentWeight || 0.025;
-    if (state.cropBalance.manualWeight !== null) {
-      mapping = interpolateSourceMappings(mMap, dMap, state.cropBalance.manualWeight);
-    } else {
-      mapping = opt.mapping || mMap;
-    }
-  }
+  let mapping = null;
+  let activeAvatarGeom = dGeom;
 
   // Feature continuation: active if extend is enabled and scene reaches bottom of image
   const desktopContinuation = state.extend ? detectBoundaryLines({
@@ -435,8 +495,43 @@ function updateAvatar() {
     sensitivity: 0.58,
   }) : null;
 
-  const activeContinuation = state.target === "mobile" ? mobileContinuation : desktopContinuation;
-  const activeAvatarGeom = state.target === "mobile" ? mGeom : dGeom;
+  let activeContinuation = desktopContinuation;
+
+  if (state.target === "desktop") {
+    mapping = dMap;
+    activeAvatarGeom = dGeom;
+    activeContinuation = desktopContinuation;
+    state.cropBalance.currentDesktopScore = 100;
+    state.cropBalance.currentMobileScore = evaluateSeamScore(state.sceneData, dMap, mMap, fill);
+  } else if (state.target === "mobile") {
+    mapping = mMap;
+    activeAvatarGeom = mGeom;
+    activeContinuation = mobileContinuation;
+    state.cropBalance.currentMobileScore = 100;
+    state.cropBalance.currentDesktopScore = evaluateSeamScore(state.sceneData, mMap, dMap, fill);
+  } else {
+    // Shared Mode: High-Precision Dual Seam Optimizer
+    const optimal = findOptimalSharedMapping(state.sceneData, dMap, mMap, fill);
+    state.cropBalance.autoWeight = optimal.weight;
+    const effWeight = state.cropBalance.manualWeight !== null
+      ? state.cropBalance.manualWeight
+      : optimal.weight;
+
+    mapping = interpolateSourceMappings(mMap, dMap, effWeight);
+
+    // Interpolate avatar geometry too so radius and center are geometrically continuous
+    activeAvatarGeom = {
+      centerX: mMap.centerX * (1 - effWeight) + dMap.centerX * effWeight,
+      centerY: mMap.centerY * (1 - effWeight) + dMap.centerY * effWeight,
+      outerRadius: mGeom.outerRadius * (1 - effWeight) + dGeom.outerRadius * effWeight,
+      borderWidth: mGeom.borderWidth * (1 - effWeight) + dGeom.borderWidth * effWeight,
+      padding: 0,
+    };
+    activeContinuation = effWeight > 0.5 ? desktopContinuation : mobileContinuation;
+
+    state.cropBalance.currentDesktopScore = evaluateSeamScore(state.sceneData, mapping, dMap, fill);
+    state.cropBalance.currentMobileScore = evaluateSeamScore(state.sceneData, mapping, mMap, fill);
+  }
 
   state.avatarData = buildAvatar({
     banner: state.sceneData,
@@ -459,6 +554,7 @@ function updateAvatar() {
   });
 
   putRawImage(avatarBufferCtx, state.avatarData, 0, 0);
+  updateBalanceUI();
 }
 
 // ── Raw Image Helper ───────────────────────────────────────────
@@ -587,19 +683,48 @@ function renderMobile() {
   mobileCtx.fillText("‹", 48, 44);
   mobileCtx.restore();
 
-  // 3. Profile metadata below banner
-  const textY = bannerH + 130;
+  // 3. Mobile Avatar Geometry (verified Android Compose geometry from PRESETS.androidApp)
+  const mobileBannerRect = { x: 0, y: 0, width: w, height: bannerH };
+  const mGeom = geometryFromPreset(PRESETS.androidApp, mobileBannerRect);
+  const avatarBottom = mGeom.centerY + mGeom.outerRadius;
+
+  // 4. Authentic Twitter/X "Edit profile" pill button on top right opposite avatar
+  const pillW = 144;
+  const pillH = 40;
+  const pillX = w - pillW - 28;
+  const pillY = Math.round(bannerH + 16);
+  mobileCtx.save();
+  mobileCtx.beginPath();
+  if (typeof mobileCtx.roundRect === "function") {
+    mobileCtx.roundRect(pillX, pillY, pillW, pillH, 20);
+  } else {
+    mobileCtx.rect(pillX, pillY, pillW, pillH);
+  }
+  mobileCtx.strokeStyle = isLight ? "#cfd9de" : "#536471";
+  mobileCtx.lineWidth = 1.5;
+  mobileCtx.stroke();
+  mobileCtx.fillStyle = isLight ? "#0f1419" : "#f7f9f9";
+  mobileCtx.font = "700 18px 'Inter', -apple-system, sans-serif";
+  mobileCtx.textAlign = "center";
+  mobileCtx.textBaseline = "middle";
+  mobileCtx.fillText("Edit profile", pillX + pillW / 2, pillY + pillH / 2);
+  mobileCtx.restore();
+
+  // 5. Profile metadata positioned cleanly below the avatar circle (zero clipping)
+  const textY = Math.round(avatarBottom + 46);
+  mobileCtx.save();
+  mobileCtx.textAlign = "left";
+  mobileCtx.textBaseline = "alphabetic";
   mobileCtx.fillStyle = isLight ? "#0f1419" : "#ffffff";
   mobileCtx.font = "800 34px 'Inter', -apple-system, sans-serif";
   mobileCtx.fillText("Your Name", 36, textY);
 
   mobileCtx.fillStyle = isLight ? "#536471" : "#71717a";
   mobileCtx.font = "600 22px 'Inter', -apple-system, sans-serif";
-  mobileCtx.fillText("@handle · mobile app", 36, textY + 40);
+  mobileCtx.fillText("@handle · mobile app", 36, textY + 38);
+  mobileCtx.restore();
 
-  // 4. Mobile Avatar (verified Android Compose geometry from PRESETS.androidApp)
-  const mobileBannerRect = { x: 0, y: 0, width: w, height: bannerH };
-  const mGeom = geometryFromPreset(PRESETS.androidApp, mobileBannerRect);
+  // 6. Draw Mobile Avatar
   drawAvatarCircle(mobileCtx, mGeom.centerX, mGeom.centerY, mGeom.outerRadius, mGeom.borderWidth, true);
 }
 
@@ -839,6 +964,14 @@ function updateBalanceUI() {
   }
   const slider = $("cropBalanceSlider");
   const statusBadge = $("cropBalanceStatus");
+  const scoreBadge = $("seamScoreBadge");
+
+  if (scoreBadge) {
+    const dScore = state.cropBalance.currentDesktopScore || 0;
+    const mScore = state.cropBalance.currentMobileScore || 0;
+    scoreBadge.textContent = `Desktop: ${dScore}% · Mobile: ${mScore}%`;
+  }
+
   if (slider && statusBadge) {
     if (state.cropBalance.manualWeight !== null) {
       const pct = Math.round(state.cropBalance.manualWeight * 100);
