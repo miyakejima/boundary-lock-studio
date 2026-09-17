@@ -6,21 +6,34 @@ import {
   optimizeSharedAffineMapping,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.0.0";
+} from "./core.js?v=6.1.0";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
-  sourceImage: null,
-  fileName: "banner.png",
+  sourceBanner: null,    // Image or Canvas element
+  bannerName: "banner.png",
+  customAvatar: null,    // Optional custom profile image
+  avatarName: null,
   zoom: 1.0,
   panX: 0,
   panY: 0,
-  target: "shared",  // "shared" | "desktop" | "mobile"
-  shape: "circle",   // "circle" | "square"
-  view: "both",      // "both" | "desktop" | "mobile"
-  bannerData: null,
-  avatarData: null,
+  target: "shared",      // "shared" | "desktop" | "mobile"
+  shape: "circle",       // "circle" | "square"
+  view: "both",          // "both" | "desktop" | "mobile"
+  bannerData: null,      // ImageData (1500 × 500)
+  avatarData: null,      // ImageData (400 × 400)
 };
+
+// ── Dedicated High-Performance Offscreen Buffers ───────────────
+const bannerBuffer = document.createElement("canvas");
+bannerBuffer.width = 1500;
+bannerBuffer.height = 500;
+const bannerBufferCtx = bannerBuffer.getContext("2d", { willReadFrequently: true });
+
+const avatarBuffer = document.createElement("canvas");
+avatarBuffer.width = 400;
+avatarBuffer.height = 400;
+const avatarBufferCtx = avatarBuffer.getContext("2d", { willReadFrequently: true });
 
 // ── DOM References ─────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -29,9 +42,8 @@ const desktopCanvas = $("desktopCanvas");
 const desktopCtx = desktopCanvas.getContext("2d");
 const mobileCanvas = $("mobileCanvas");
 const mobileCtx = mobileCanvas.getContext("2d");
-const hiddenBuffer = $("hiddenBuffer");
-const hiddenCtx = hiddenBuffer.getContext("2d", { willReadFrequently: true });
-const fileInput = $("fileInput");
+const bannerInput = $("bannerInput");
+const avatarInput = $("avatarInput");
 const toastEl = $("toast");
 const dropOverlay = $("dropOverlay");
 
@@ -100,13 +112,11 @@ function createDefaultBanner() {
 function updateWorkingBanner() {
   const width = 1500;
   const height = 500;
-  hiddenBuffer.width = width;
-  hiddenBuffer.height = height;
 
-  hiddenCtx.fillStyle = "#000000";
-  hiddenCtx.fillRect(0, 0, width, height);
+  bannerBufferCtx.fillStyle = "#000000";
+  bannerBufferCtx.fillRect(0, 0, width, height);
 
-  const img = state.sourceImage;
+  const img = state.sourceBanner;
   if (!img) return;
 
   // Compute cover scale
@@ -122,8 +132,8 @@ function updateWorkingBanner() {
   const drawX = (width - drawW) / 2 + state.panX;
   const drawY = (height - drawH) / 2 + state.panY;
 
-  hiddenCtx.drawImage(img, drawX, drawY, drawW, drawH);
-  state.bannerData = hiddenCtx.getImageData(0, 0, width, height);
+  bannerBufferCtx.drawImage(img, drawX, drawY, drawW, drawH);
+  state.bannerData = bannerBufferCtx.getImageData(0, 0, width, height);
 }
 
 // ── Compute Aligned Avatar (400 × 400) ─────────────────────────
@@ -152,18 +162,42 @@ function updateAvatar() {
     mapping = opt.mapping || dMap;
   }
 
+  // If custom avatar is uploaded, extract its ImageData
+  let customAvatarData = null;
+  if (state.customAvatar) {
+    const pCanvas = document.createElement("canvas");
+    const pW = state.customAvatar.naturalWidth || state.customAvatar.width || 400;
+    const pH = state.customAvatar.naturalHeight || state.customAvatar.height || 400;
+    pCanvas.width = pW;
+    pCanvas.height = pH;
+    const pCtx = pCanvas.getContext("2d");
+    pCtx.drawImage(state.customAvatar, 0, 0);
+    customAvatarData = pCtx.getImageData(0, 0, pW, pH);
+  }
+
   state.avatarData = buildAvatar({
     banner: state.bannerData,
+    portrait: customAvatarData,
     outputSize: 400,
     bannerRect: desktopRect,
     avatar: dGeom,
+    mode: state.customAvatar ? "portrait" : "banner",
     shape: state.shape,
     pageColor: [0, 0, 0],
+    portraitControls: {
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      rotation: 0,
+      opacity: 1,
+    },
     compatibility: {
       enabled: true,
       sourceMapping: mapping,
     },
   });
+
+  avatarBufferCtx.putImageData(state.avatarData, 0, 0);
 }
 
 // ── Draw Avatar on Canvas ──────────────────────────────────────
@@ -182,13 +216,8 @@ function drawAvatarCircle(ctx, cx, cy, radius, borderWidth = 4) {
   ctx.closePath();
   ctx.clip();
 
-  // Create temp canvas for avatarData
-  const temp = document.createElement("canvas");
-  temp.width = 400;
-  temp.height = 400;
-  temp.getContext("2d").putImageData(state.avatarData, 0, 0);
-
-  ctx.drawImage(temp, cx - radius, cy - radius, radius * 2, radius * 2);
+  // Draw avatar directly from dedicated offscreen avatarBuffer
+  ctx.drawImage(avatarBuffer, cx - radius, cy - radius, radius * 2, radius * 2);
   ctx.restore();
 
   // Draw border ring
@@ -216,11 +245,8 @@ function renderDesktop() {
   desktopCtx.fillStyle = "#000000";
   desktopCtx.fillRect(0, 0, w, h);
 
-  // 1. Draw 1500 × 500 banner
-  if (state.bannerData) {
-    hiddenCtx.putImageData(state.bannerData, 0, 0);
-    desktopCtx.drawImage(hiddenBuffer, 0, 0, 1500, 500);
-  }
+  // 1. Draw 1500 × 500 banner directly from dedicated bannerBuffer
+  desktopCtx.drawImage(bannerBuffer, 0, 0, 1500, 500);
 
   // 2. Profile metadata below banner
   desktopCtx.fillStyle = "#ffffff";
@@ -244,10 +270,8 @@ function renderMobile() {
 
   const bannerH = w / 3; // 914 / 3 = ~304.7px
 
-  // 1. Draw banner scaled to 914 × 305
-  if (state.bannerData) {
-    mobileCtx.drawImage(hiddenBuffer, 0, 0, 1500, 500, 0, 0, w, bannerH);
-  }
+  // 1. Draw banner scaled to 914 × 305 directly from dedicated bannerBuffer
+  mobileCtx.drawImage(bannerBuffer, 0, 0, 1500, 500, 0, 0, w, bannerH);
 
   // 2. Top bar vignette & mobile controls
   mobileCtx.fillStyle = "rgba(0, 0, 0, 0.35)";
@@ -289,35 +313,54 @@ function scheduleRender() {
 }
 
 // ── Interactive Drag & Zoom ────────────────────────────────────
-function setupDrag(canvas, getScale) {
+function setupDrag(canvas, getScale, isInsideAvatar) {
   let isDragging = false;
   let startX = 0;
   let startY = 0;
   let initialPanX = 0;
   let initialPanY = 0;
+  let moved = false;
 
   canvas.addEventListener("pointerdown", (e) => {
-    isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
     initialPanX = state.panX;
     initialPanY = state.panY;
+    isDragging = true;
+    moved = false;
     canvas.setPointerCapture(e.pointerId);
   });
 
   canvas.addEventListener("pointermove", (e) => {
     if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.hypot(dx, dy) > 3) {
+      moved = true;
+    }
     const factor = getScale();
-    const dx = (e.clientX - startX) * factor;
-    const dy = (e.clientY - startY) * factor;
-    state.panX = initialPanX + dx;
-    state.panY = initialPanY + dy;
+    state.panX = initialPanX + dx * factor;
+    state.panY = initialPanY + dy * factor;
     scheduleRender();
   });
 
-  const endDrag = () => { isDragging = false; };
-  canvas.addEventListener("pointerup", endDrag);
-  canvas.addEventListener("pointercancel", endDrag);
+  canvas.addEventListener("pointerup", (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    // Click on avatar circle triggers avatar upload
+    if (!moved && isInsideAvatar) {
+      const rect = canvas.getBoundingClientRect();
+      const canvasX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const canvasY = (e.clientY - rect.top) * (canvas.height / rect.height);
+      if (isInsideAvatar(canvasX, canvasY)) {
+        avatarInput.click();
+      }
+    }
+  });
+
+  canvas.addEventListener("pointercancel", () => {
+    isDragging = false;
+  });
 
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
@@ -344,44 +387,53 @@ function downloadBlob(blob, filename) {
 function exportAssets() {
   if (!state.bannerData || !state.avatarData) return;
 
-  // 1. Export 1500 × 500 banner
-  const bCanvas = document.createElement("canvas");
-  bCanvas.width = 1500;
-  bCanvas.height = 500;
-  bCanvas.getContext("2d").putImageData(state.bannerData, 0, 0);
-  bCanvas.toBlob((bBlob) => {
+  // 1. Export 1500 × 500 banner directly from dedicated buffer
+  bannerBuffer.toBlob((bBlob) => {
     if (bBlob) downloadBlob(bBlob, "banner-1500x500.png");
   }, "image/png");
 
-  // 2. Export 400 × 400 avatar
+  // 2. Export 400 × 400 avatar directly from dedicated buffer
   setTimeout(() => {
-    const aCanvas = document.createElement("canvas");
-    aCanvas.width = 400;
-    aCanvas.height = 400;
-    aCanvas.getContext("2d").putImageData(state.avatarData, 0, 0);
-    aCanvas.toBlob((aBlob) => {
+    avatarBuffer.toBlob((aBlob) => {
       if (aBlob) downloadBlob(aBlob, "avatar-400x400.png");
       showToast("Downloaded banner-1500x500.png & avatar-400x400.png");
     }, "image/png");
   }, 250);
 }
 
-// ── Load Image from File ───────────────────────────────────────
-function loadFile(file) {
+// ── Load Banner Image from File (Default Upload Action) ────────
+function loadBannerFile(file) {
   if (!file || !file.type.startsWith("image/")) return;
   const reader = new FileReader();
   reader.onload = (e) => {
     const img = new Image();
     img.onload = () => {
-      state.sourceImage = img;
-      state.fileName = file.name;
+      state.sourceBanner = img;
+      state.bannerName = file.name;
       state.zoom = 1.0;
       state.panX = 0;
       state.panY = 0;
       $("zoomSlider").value = "100";
       $("zoomValue").textContent = "100%";
       scheduleRender();
-      showToast(`Loaded: ${file.name}`);
+      showToast(`Banner loaded: ${file.name}`);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Load Avatar Image from File (Optional Profile Picture) ──────
+function loadAvatarFile(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      state.customAvatar = img;
+      state.avatarName = file.name;
+      scheduleRender();
+      showToast(`Avatar loaded: ${file.name}`);
     };
     img.src = e.target.result;
   };
@@ -467,24 +519,48 @@ function initEvents() {
     state.zoom = 1.0;
     state.panX = 0;
     state.panY = 0;
+    state.customAvatar = null;
+    state.avatarName = null;
     zoomSlider.value = "100";
     zoomValue.textContent = "100%";
     scheduleRender();
-    showToast("Position reset");
+    showToast("Reset pan, zoom & avatar");
   });
 
-  // Upload & Export
-  $("uploadBtn").addEventListener("click", () => fileInput.click());
-  fileInput.addEventListener("change", (e) => {
-    if (e.target.files?.[0]) loadFile(e.target.files[0]);
+  // Upload Buttons
+  $("uploadBannerBtn").addEventListener("click", () => bannerInput.click());
+  bannerInput.addEventListener("change", (e) => {
+    if (e.target.files?.[0]) loadBannerFile(e.target.files[0]);
   });
+
+  $("uploadAvatarBtn").addEventListener("click", () => avatarInput.click());
+  avatarInput.addEventListener("change", (e) => {
+    if (e.target.files?.[0]) loadAvatarFile(e.target.files[0]);
+  });
+
   $("exportBtn").addEventListener("click", exportAssets);
 
-  // Setup Canvas Dragging with proper DPI ratio
-  setupDrag(desktopCanvas, () => 1500 / desktopCanvas.getBoundingClientRect().width);
-  setupDrag(mobileCanvas, () => 914 / mobileCanvas.getBoundingClientRect().width);
+  // Setup Canvas Dragging with avatar click detection
+  setupDrag(
+    desktopCanvas,
+    () => 1500 / desktopCanvas.getBoundingClientRect().width,
+    (x, y) => Math.hypot(x - 210.7, y - 500) <= 166.5
+  );
 
-  // Global Drag and Drop
+  setupDrag(
+    mobileCanvas,
+    () => 914 / mobileCanvas.getBoundingClientRect().width,
+    (x, y) => {
+      const w = mobileCanvas.width;
+      const bannerH = w / 3;
+      const cx = (52 / 411) * w;
+      const cy = bannerH + (12 / 411) * bannerH;
+      const r = (40 / 411) * w;
+      return Math.hypot(x - cx, y - cy) <= r;
+    }
+  );
+
+  // Global Drag and Drop (defaults to loading as Banner)
   let dragCounter = 0;
   window.addEventListener("dragenter", (e) => {
     e.preventDefault();
@@ -507,11 +583,11 @@ function initEvents() {
     dragCounter = 0;
     dropOverlay.hidden = true;
     const file = e.dataTransfer?.files?.[0];
-    if (file) loadFile(file);
+    if (file) loadBannerFile(file);
   });
 }
 
 // ── Startup ────────────────────────────────────────────────────
-state.sourceImage = createDefaultBanner();
+state.sourceBanner = createDefaultBanner();
 initEvents();
 scheduleRender();

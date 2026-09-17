@@ -8,14 +8,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=6.0.0" />
+  <link rel="stylesheet" href="./styles.css?v=6.1.0" />
 </head>
 <body>
   <!-- Drag and drop full window overlay -->
   <div id="dropOverlay" class="drop-overlay" hidden>
     <div class="drop-box">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <span>Drop image here to load</span>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Drop image here to load as Banner</span>
     </div>
   </div>
 
@@ -37,12 +37,17 @@
     </div>
 
     <div class="header-right">
-      <button id="uploadBtn" class="btn btn-ghost" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Upload</span>
+      <button id="uploadBannerBtn" class="btn btn-ghost" type="button" title="Upload image as Banner (1500 × 500)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span>Upload Banner</span>
       </button>
 
-      <button id="exportBtn" class="btn btn-solid" type="button">
+      <button id="uploadAvatarBtn" class="btn btn-ghost" type="button" title="Optional: Upload custom profile avatar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Upload Avatar</span>
+      </button>
+
+      <button id="exportBtn" class="btn btn-solid" type="button" title="Export aligned banner and avatar PNGs">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span>Export PNGs</span>
       </button>
@@ -129,13 +134,13 @@
     </nav>
   </main>
 
-  <!-- Hidden elements for file upload and buffers -->
-  <input id="fileInput" type="file" accept="image/*" style="display: none;" />
-  <canvas id="hiddenBuffer" style="display: none;"></canvas>
+  <!-- Hidden elements for file upload -->
+  <input id="bannerInput" type="file" accept="image/*" style="display: none;" />
+  <input id="avatarInput" type="file" accept="image/*" style="display: none;" />
 
   <!-- Clean Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="./app.js?v=6.0.0"></script>
+  <script type="module" src="./app.js?v=6.1.0"></script>
 </body>
 </html>
