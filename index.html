@@ -3,235 +3,320 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark light" />
-  <link rel="icon" href="data:," />
-  <title>Boundary Lock Studio</title>
-  <link rel="stylesheet" href="./styles.css?v=4.5.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>headerlock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=5.0.0" />
 </head>
 <body>
-  <header class="app-header">
-    <div>
-      <p class="eyebrow">LOCAL · DETERMINISTIC · NO AI</p>
-      <h1>Boundary Lock Studio</h1>
+  <!-- Global Drop Overlay -->
+  <div id="dropOverlay" class="drop-overlay" hidden>
+    <div class="drop-content">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span>Drop image to load</span>
     </div>
-    <div class="header-status">
-      <span id="privacyBadge" class="pill safe">Assets stay in this browser</span>
+  </div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="brand">
+        <span class="brand-name">headerlock</span>
+        <span class="brand-dot"></span>
+      </div>
+
+      <!-- Quick Upload Controls -->
+      <div class="upload-pills">
+        <label class="upload-pill" title="Upload banner image">
+          <input id="bannerInput" type="file" accept="image/*" />
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <span>Banner</span>
+          <small id="bannerMeta">1500×500</small>
+        </label>
+
+        <label class="upload-pill profile-pill" title="Upload avatar image">
+          <input id="portraitInput" type="file" accept="image/*" />
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+          <span>Avatar</span>
+          <small id="portraitMeta">Default</small>
+        </label>
+
+        <button id="editProfilePicture" class="icon-btn" type="button" title="Crop / Adjust Profile Picture">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Mode Switcher -->
+    <div class="header-center">
+      <div class="segmented-control" role="radiogroup" aria-label="Workflow mode">
+        <button id="modeBanner" class="active" type="button">Banner → Avatar</button>
+        <button id="modePortrait" type="button">Avatar → Banner</button>
+      </div>
+    </div>
+
+    <!-- Right Zone: View Switcher, Fine-Tune, Export -->
+    <div class="header-right">
+      <div class="view-switch segmented-control">
+        <button id="viewBoth" class="active" type="button" title="Side-by-side view">Both</button>
+        <button id="viewDesktop" type="button" title="Desktop web view">Desktop</button>
+        <button id="viewMobile" type="button" title="Android app view">Mobile</button>
+      </div>
+
+      <!-- Fine-Tune Drawer Trigger -->
+      <button id="toggleFineTune" class="btn-ghost" type="button" title="Fine-tune alignment, continuation & transform">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Fine-tune</span>
+      </button>
+
+      <!-- Export Button & Dropdown -->
+      <div class="export-dropdown-wrapper">
+        <button id="exportBothDirect" class="btn-primary" type="button" title="Export both Avatar and Banner together">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span id="exportBtnText">Export All</span>
+        </button>
+        <button id="exportMenuTrigger" class="btn-primary btn-arrow" type="button" aria-label="More export options">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <div id="exportMenu" class="dropdown-menu" hidden>
+          <button id="exportAvatar" class="dropdown-item" type="button">
+            <span>Export Avatar PNG</span>
+            <kbd>400×400</kbd>
+          </button>
+          <div id="adjustedBannerExportWrapper">
+            <button id="exportBanner" class="dropdown-item" type="button">
+              <span>Export Banner PNG</span>
+              <kbd>1500×500</kbd>
+            </button>
+            <small id="exportHint" class="dropdown-hint">Adjusted for best shared alignment.</small>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button id="exportMetadata" class="dropdown-item" type="button">
+            <span>Project JSON</span>
+            <kbd>.json</kbd>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
+  <!-- Workspace Stage -->
   <main class="workspace">
-    <aside class="panel left-panel" aria-label="Assets and workflow">
-      <section>
-        <div class="section-title"><span>01</span><h2>Source images</h2></div>
-        <label class="upload-card">
-          <input id="bannerInput" type="file" accept="image/*" />
-          <span class="upload-icon">B</span>
-          <span><strong>Banner image</strong><small id="bannerMeta">Demo banner · 1500 × 500</small></span>
-        </label>
-        <label class="upload-card profile-upload-card">
-          <input id="portraitInput" type="file" accept="image/*" />
-          <span class="upload-icon">P</span>
-          <span><strong>Select profile picture</strong><small id="portraitMeta">Choose an image, then crop it like X</small></span>
-        </label>
-        <div class="composition-switch" role="radiogroup" aria-label="Composition mode">
-          <button id="modeBanner" class="active" type="button">Banner → profile</button>
-          <button id="modePortrait" type="button">Set profile → build banner</button>
+    <div id="previewsGrid" class="previews-grid view-both">
+      <!-- Desktop Preview Card -->
+      <div class="preview-card desktop-card">
+        <div class="preview-header">
+          <span class="preview-badge">Desktop Web</span>
+          <span class="preview-dim">1500 × 500 · 400 × 400</span>
         </div>
-        <div id="bannerQuickTools" class="quick-tools" aria-label="Banner quick tools">
-          <div class="quick-tools-label">
-            <strong>Banner position</strong>
-            <small id="bannerTransformStatus">Original banner · avatar only export is enough</small>
-          </div>
-          <div class="quick-tools-buttons">
-            <button id="mirrorBanner" class="quick-tool" type="button">Mirror</button>
-            <button id="flipBanner" class="quick-tool" type="button">Flip</button>
-            <button id="rotateBanner" class="quick-tool" type="button">Rotate 0°</button>
-            <button id="resetBannerTools" class="quick-tool danger" type="button">Reset</button>
-          </div>
-          <div class="quick-tools-buttons">
-            <button id="nudgeBannerLeft" class="quick-tool arrow" type="button" aria-label="Move banner left">←</button>
-            <button id="nudgeBannerUp" class="quick-tool arrow" type="button" aria-label="Move banner up">↑</button>
-            <button id="nudgeBannerDown" class="quick-tool arrow" type="button" aria-label="Move banner down">↓</button>
-            <button id="nudgeBannerRight" class="quick-tool arrow" type="button" aria-label="Move banner right">→</button>
-          </div>
-          <div class="quick-tools-buttons">
-            <label class="quick-zoom">Zoom <input id="bannerZoomInput" type="number" min="100" max="400" step="1" value="100" /><span>%</span></label>
-            <button id="zoomBannerOut" class="quick-tool" type="button">−</button>
-            <button id="zoomBannerIn" class="quick-tool" type="button">+</button>
-          </div>
+        <div class="canvas-wrapper" title="Drag to pan · Scroll to zoom">
+          <canvas id="desktopCanvas" width="1200" height="760"></canvas>
+          <div class="canvas-hint">drag to pan · scroll to zoom</div>
         </div>
-      </section>
+      </div>
 
-      <section id="prioritySection">
-        <div class="section-title"><span>02</span><h2>Priority settings</h2></div>
-        
-        <div class="priority-group">
-          <label class="priority-option">
+      <!-- Android Preview Card -->
+      <div class="preview-card android-card">
+        <div class="preview-header">
+          <span class="preview-badge">Mobile App</span>
+          <span class="preview-dim">X Android</span>
+        </div>
+        <div class="canvas-wrapper" title="Drag to pan · Scroll to zoom">
+          <canvas id="androidCanvas" width="914" height="880"></canvas>
+          <div class="canvas-hint">drag to pan · scroll to zoom</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Minimal Bottom Control Island -->
+    <div class="floating-island">
+      <!-- Priority Pill -->
+      <div id="prioritySection" class="island-group">
+        <span class="island-label">Target</span>
+        <div class="segmented-control mini">
+          <label class="segmented-option">
             <input type="radio" name="priority" value="shared" checked />
-            <div class="priority-box">
-              <strong>Best shared (Recommended)</strong>
-              <small>Uses one compromise boundary alignment for both platforms.</small>
-            </div>
+            <span>Shared</span>
           </label>
-          <label class="priority-option">
-            <input type="radio" name="priority" value="mobile" />
-            <div class="priority-box">
-              <strong>Mobile-perfect</strong>
-              <small>Targets the Android mobile-app profile position. Desktop may be misaligned.</small>
-            </div>
-          </label>
-          <label class="priority-option">
+          <label class="segmented-option">
             <input type="radio" name="priority" value="desktop" />
-            <div class="priority-box">
-              <strong>Desktop-perfect</strong>
-              <small>Targets the Desktop-web profile position. Android may be misaligned.</small>
-            </div>
+            <span>Desktop</span>
+          </label>
+          <label class="segmented-option">
+            <input type="radio" name="priority" value="mobile" />
+            <span>Mobile</span>
           </label>
         </div>
-
-        <div id="cropBalanceSection" class="crop-balance-section" style="display:none">
-          <div class="crop-balance-head">
-            <strong>Crop position balance</strong>
-            <span id="cropBalanceValue" class="crop-balance-value">Auto</span>
-          </div>
-          <div class="crop-balance-endpoints">
-            <span>&#9670; Android</span>
-            <span>Desktop &#9670;</span>
-          </div>
-          <div class="crop-balance-track">
-            <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="0" />
-            <div id="autoWeightMarker" class="auto-weight-marker" title="Optimizer recommendation (A)"></div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
-            <p class="crop-balance-hint">The yellow marker shows the automatic balance. Drag the thumb to favor Android or Desktop and update both previews live.</p>
-            <button id="resetCropBalance" class="quick-tool" type="button" style="display:none; flex-shrink:0">&#8635; Auto</button>
-          </div>
-        </div>
-
-        <p>Desktop and Android place the profile picture differently. A single pair may not line up perfectly on both.</p>
-        <p class="shared-warning" id="sharedWarning"><strong>Best shared</strong>: uses one compromise mapping for the two X layouts.</p>
-      </section>
-    </aside>
-
-    <section class="stage-column" aria-label="Live previews">
-      <div class="stage-toolbar">
-        <div>
-          <span class="live-dot"></span>
-          <strong>Live previews</strong>
-        </div>
       </div>
-      <div class="previews-grid">
-        <div class="preview-card desktop-card">
-          <h3>Desktop Web Preview</h3>
-          <div class="canvas-wrapper">
-            <canvas id="desktopCanvas" width="1200" height="760"></canvas>
-          </div>
-        </div>
-        <div class="preview-card android-card">
-          <h3>Android App Preview</h3>
-          <div class="canvas-wrapper">
-            <canvas id="androidCanvas" width="914" height="880"></canvas>
-          </div>
-        </div>
+
+      <div class="island-divider"></div>
+
+      <!-- Shape Pill -->
+      <div class="island-group">
+        <span class="island-label">Shape</span>
+        <select id="shapeSelect" class="island-select">
+          <option value="circle">Circle</option>
+          <option value="rounded">Rounded</option>
+        </select>
       </div>
-    </section>
 
-    <aside class="panel right-panel" aria-label="Controls and export">
-      <section>
-        <div class="section-title"><span>03</span><h2>Preview options</h2></div>
-        <label>Account type
-          <select id="shapeSelect">
-            <option value="circle">Personal · circle</option>
-            <option value="rounded">Organization · rounded square</option>
-          </select>
-        </label>
-        <label>Theme
-          <select id="themeSelect">
-            <option value="dark">Dark · black padding</option>
-            <option value="light">Light · white padding</option>
-          </select>
-        </label>
-      </section>
+      <div class="island-divider"></div>
 
-      <section id="portraitControls" class="disabled-section">
-        <div class="section-title"><span>04</span><h2>Profile picture</h2></div>
-        <div class="profile-set-card">
-          <div id="profileSetIndicator" class="profile-set-indicator">No profile picture set</div>
-          <p id="profileSetHelp" class="control-help">Select an image. A familiar crop window will let you drag and zoom it before anything is applied.</p>
-          <button id="editProfilePicture" class="button primary full" type="button">Select profile picture</button>
-        </div>
-        <small id="linkedCoverageStatus" class="coverage-status">The profile remains unchanged after you press Apply</small>
-      </section>
+      <!-- Theme Pill -->
+      <div class="island-group">
+        <span class="island-label">Theme</span>
+        <select id="themeSelect" class="island-select">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
 
-      <section id="continuationSection">
-        <div class="section-title"><span>05</span><h2>Missing-area continuation</h2></div>
-        <div class="cont-header">
-          <div class="cont-title-row">
-            <span class="cont-label">Extend features below banner edge</span>
-            <label class="cont-toggle-wrap">
-              <input id="continuationToggle" type="checkbox" checked />
-              <span class="cont-toggle-track"><span class="cont-toggle-thumb"></span></span>
-            </label>
-          </div>
-          <div class="cont-status-row">
-            <span id="continuationStatusDot" class="cont-dot idle"></span>
-            <span id="continuationStatus" class="cont-status-text">Detecting…</span>
-          </div>
-        </div>
-        <div class="cont-sensitivity">
-          <div class="cont-sens-head">
-            <span class="cont-sens-label">Detection sensitivity</span>
-            <span id="continuationSensValue" class="cont-sens-value">58%</span>
-          </div>
-          <input id="continuationSensitivity" type="range" min="10" max="95" step="1" value="58" class="cont-slider" />
-          <div class="cont-sens-ends">
-            <span>Conservative</span><span>Aggressive</span>
-          </div>
-        </div>
-        <p class="cont-hint">When the avatar overlaps the banner’s bottom edge, continuation detects straight features (lines, borders, geometry) crossing that boundary and extrapolates them into the virtual canvas below. Higher sensitivity catches more features but may introduce false positives on noisy images.</p>
-      </section>
+      <div class="island-divider"></div>
 
-      <section class="export-section">
-        <div class="section-title"><span>06</span><h2>Export assets</h2></div>
-        <button id="exportAvatar" class="button primary full" type="button">Export avatar PNG</button>
-        <div id="adjustedBannerExportWrapper">
-          <button id="exportBanner" class="button secondary full" type="button">Export adjusted banner PNG</button>
-          <small id="exportHint" class="export-hint">Upload the adjusted banner PNG together with the avatar for Best shared alignment.</small>
-        </div>
-        <div class="button-row">
-          <button id="exportMetadata" class="button ghost" type="button">Project JSON</button>
-        </div>
-      </section>
-    </aside>
+      <!-- Reset button -->
+      <button id="resetBannerTools" class="island-btn" type="button" title="Reset position and zoom">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reset</span>
+      </button>
+    </div>
   </main>
 
-  <div id="profileEditor" class="profile-editor" hidden role="dialog" aria-modal="true" aria-labelledby="profileEditorTitle">
+  <!-- Fine-Tune Popover Drawer -->
+  <div id="fineTuneModal" class="fine-tune-modal" hidden>
+    <div class="fine-tune-backdrop"></div>
+    <div class="fine-tune-dialog">
+      <div class="dialog-header">
+        <h3>Fine-tune Alignment</h3>
+        <button id="closeFineTune" class="close-btn" type="button" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <!-- Feature Continuation -->
+        <div id="continuationSection" class="tune-block">
+          <div class="tune-row">
+            <div>
+              <strong>Feature Continuation</strong>
+              <small>Extrapolates features crossing the banner bottom seam</small>
+            </div>
+            <label class="switch">
+              <input id="continuationToggle" type="checkbox" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="tune-slider-row">
+            <div class="slider-head">
+              <span>Sensitivity</span>
+              <span id="continuationSensValue" class="slider-val">58%</span>
+            </div>
+            <input id="continuationSensitivity" type="range" min="10" max="95" step="1" value="58" />
+          </div>
+          <div class="tune-status">
+            <span id="continuationStatusDot" class="status-dot"></span>
+            <span id="continuationStatus">Detecting…</span>
+          </div>
+        </div>
+
+        <!-- Crop Balance (Shared mode) -->
+        <div id="cropBalanceSection" class="tune-block" style="display:none">
+          <div class="tune-row">
+            <div>
+              <strong>Cross-Platform Compromise</strong>
+              <small>Manual weight balance between Mobile and Desktop</small>
+            </div>
+            <button id="resetCropBalance" class="mini-btn" type="button">Auto</button>
+          </div>
+          <div class="tune-slider-row">
+            <div class="slider-head">
+              <span>Android</span>
+              <span id="cropBalanceValue" class="slider-val">Auto</span>
+              <span>Desktop</span>
+            </div>
+            <div class="range-wrap">
+              <input id="cropBalanceSlider" type="range" min="0" max="100" step="1" value="0" />
+              <div id="autoWeightMarker" class="auto-marker"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Transform Controls -->
+        <div id="bannerQuickTools" class="tune-block">
+          <div class="tune-row">
+            <div>
+              <strong>Transform Tools</strong>
+              <small id="bannerTransformStatus">Position and orientation</small>
+            </div>
+          </div>
+
+          <div class="btn-matrix">
+            <button id="mirrorBanner" class="tool-btn" type="button">Mirror</button>
+            <button id="flipBanner" class="tool-btn" type="button">Flip</button>
+            <button id="rotateBanner" class="tool-btn" type="button">Rotate 0°</button>
+          </div>
+
+          <div class="zoom-row">
+            <span>Zoom</span>
+            <button id="zoomBannerOut" class="tool-btn" type="button">−</button>
+            <input id="bannerZoomInput" type="number" min="100" max="400" step="1" value="100" />
+            <button id="zoomBannerIn" class="tool-btn" type="button">+</button>
+          </div>
+
+          <div class="nudge-cluster">
+            <button id="nudgeBannerUp" class="nudge-btn up" type="button">↑</button>
+            <div class="nudge-mid">
+              <button id="nudgeBannerLeft" class="nudge-btn" type="button">←</button>
+              <button id="nudgeBannerDown" class="nudge-btn" type="button">↓</button>
+              <button id="nudgeBannerRight" class="nudge-btn" type="button">→</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portrait Controls (when Avatar -> Banner) -->
+        <div id="portraitControls" class="tune-block disabled-section">
+          <div id="profileSetIndicator" class="indicator-text">No profile picture set</div>
+          <p id="profileSetHelp" class="help-text" style="display:none"></p>
+          <small id="linkedCoverageStatus" class="coverage-text"></small>
+        </div>
+
+        <div id="sharedWarning" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Crop Modal (Clean AMOLED style) -->
+  <div id="profileEditor" class="profile-editor" hidden role="dialog" aria-modal="true">
     <div class="profile-editor-backdrop"></div>
     <section class="profile-editor-dialog">
       <header class="profile-editor-header">
-        <button id="cancelProfileEditorTop" class="profile-editor-close" type="button" aria-label="Back">←</button>
-        <h2 id="profileEditorTitle">Edit media</h2>
-        <button id="applyProfilePicture" class="profile-apply" type="button">Apply</button>
+        <button id="cancelProfileEditorTop" class="profile-editor-close" type="button">✕</button>
+        <h2>Crop Profile Picture</h2>
+        <button id="applyProfilePicture" class="btn-primary" type="button">Apply</button>
       </header>
       <div class="profile-crop-stage">
-        <canvas id="profileCropCanvas" width="600" height="600" aria-label="Drag horizontally to reposition profile picture"></canvas>
-        <div class="profile-crop-ring" aria-hidden="true"></div>
+        <canvas id="profileCropCanvas" width="600" height="600"></canvas>
+        <div class="profile-crop-ring"></div>
       </div>
       <div class="profile-zoom-row">
-        <span aria-hidden="true">−</span>
-        <input id="profileCropZoom" type="range" min="100" max="1200" step="1" value="100" aria-label="Zoom profile picture" />
-        <span aria-hidden="true">＋</span>
+        <span>−</span>
+        <input id="profileCropZoom" type="range" min="100" max="1200" step="1" value="100" />
+        <span>＋</span>
       </div>
       <footer class="profile-editor-footer">
-        <button id="resetProfileCrop" class="button ghost" type="button">Reset</button>
-        <button id="cancelProfileEditor" class="button secondary" type="button">Cancel</button>
+        <button id="resetProfileCrop" class="btn-ghost" type="button">Reset</button>
+        <button id="cancelProfileEditor" class="btn-ghost" type="button">Cancel</button>
       </footer>
-      <p class="profile-editor-hint">Drag to reposition the image without stretching it. Use the slider or mouse wheel to zoom. Apply locks the square exactly as shown.</p>
     </section>
   </div>
 
+  <!-- Hidden Buffers & Toast -->
   <canvas id="avatarCanvas" width="400" height="400" style="display: none;"></canvas>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="./app.js?v=4.5.0"></script>
+
+  <script type="module" src="./app.js?v=5.0.0"></script>
 </body>
 </html>

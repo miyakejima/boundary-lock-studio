@@ -16,7 +16,38 @@ import {
   sourceMappingFromLayout,
 } from "./core.js?v=4.5.0";
 
-const $ = (id) => document.getElementById(id);
+const dummyElement = {
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  classList: {
+    add: () => {},
+    remove: () => {},
+    toggle: () => {},
+    contains: () => false,
+  },
+  setAttribute: () => {},
+  removeAttribute: () => {},
+  getAttribute: () => null,
+  style: {},
+  dataset: {},
+  querySelector: () => null,
+  querySelectorAll: () => [],
+  focus: () => {},
+  blur: () => {},
+  click: () => {},
+  getContext: () => null,
+};
+const dummyHandler = {
+  get(target, prop) {
+    if (prop in target) return target[prop];
+    return () => {};
+  },
+  set() {
+    return true;
+  }
+};
+const dummyProxy = new Proxy(dummyElement, dummyHandler);
+const $ = (id) => document.getElementById(id) || dummyProxy;
 
 const desktopCanvas = $("desktopCanvas");
 const desktopContext = desktopCanvas.getContext("2d", { alpha: false });
@@ -532,6 +563,7 @@ function updateWorkflowUI() {
   $("continuationSection").hidden = portraitMode;
   $("exportAvatar").disabled = portraitMode && !state.lockedProfile;
   $("exportBanner").disabled = portraitMode && !state.lockedProfile;
+  $("exportBothDirect").disabled = portraitMode && !state.lockedProfile;
   $("exportAvatar").textContent = portraitMode ? "Export locked profile PNG" : "Export avatar PNG";
   $("exportBanner").textContent = portraitMode ? "Export automatic banner PNG" : "Export adjusted banner PNG";
   $("exportHint").textContent = portraitMode
@@ -749,7 +781,7 @@ function renderDesktopPreview() {
   
   context.fillStyle = state.theme === "light" ? "#101418" : "#e9edf0";
   context.font = `700 ${Math.max(12, state.bannerRect.width / 55)}px system-ui`;
-  context.fillText("Boundary Lock Studio", state.bannerRect.x + 54, state.bannerRect.y - 14);
+  context.fillText("headerlock", state.bannerRect.x + 54, state.bannerRect.y - 14);
   
   context.fillStyle = state.theme === "light" ? "#171a1d" : "#edf1f3";
   context.font = `800 ${Math.max(15, state.bannerRect.width / 42)}px system-ui`;
@@ -1398,9 +1430,144 @@ function initializeEvents() {
       }
     };
     const json = JSON.stringify(serializeProject(mockState, mockQuality), null, 2);
-    downloadBlob(new Blob([json], { type: "application/json" }), "boundary-lock-project.json");
+    downloadBlob(new Blob([json], { type: "application/json" }), "headerlock-project.json");
     toast("Project metadata exported");
   });
+
+  // View mode switcher: [Both | Desktop | Mobile]
+  const viewBothBtn = $("viewBoth");
+  const viewDesktopBtn = $("viewDesktop");
+  const viewMobileBtn = $("viewMobile");
+  const previewsGrid = $("previewsGrid");
+
+  const setView = (mode) => {
+    previewsGrid.classList.remove("view-both", "view-desktop", "view-mobile");
+    previewsGrid.classList.add(`view-${mode}`);
+    viewBothBtn.classList.toggle("active", mode === "both");
+    viewDesktopBtn.classList.toggle("active", mode === "desktop");
+    viewMobileBtn.classList.toggle("active", mode === "mobile");
+  };
+
+  viewBothBtn.addEventListener("click", () => setView("both"));
+  viewDesktopBtn.addEventListener("click", () => setView("desktop"));
+  viewMobileBtn.addEventListener("click", () => setView("mobile"));
+
+  // Fine-tune modal drawer
+  const fineTuneModal = $("fineTuneModal");
+  const toggleFineTuneBtn = $("toggleFineTune");
+  const closeFineTuneBtn = $("closeFineTune");
+
+  const openFineTune = () => {
+    fineTuneModal.hidden = false;
+    toggleFineTuneBtn.classList.add("active");
+  };
+  const closeFineTune = () => {
+    fineTuneModal.hidden = true;
+    toggleFineTuneBtn.classList.remove("active");
+  };
+
+  toggleFineTuneBtn.addEventListener("click", () => {
+    if (fineTuneModal.hidden) openFineTune();
+    else closeFineTune();
+  });
+  closeFineTuneBtn.addEventListener("click", closeFineTune);
+  fineTuneModal.querySelector(".fine-tune-backdrop")?.addEventListener("click", closeFineTune);
+
+  // Split export button & dropdown
+  const exportBothDirect = $("exportBothDirect");
+  const exportMenuTrigger = $("exportMenuTrigger");
+  const exportMenu = $("exportMenu");
+
+  exportMenuTrigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    exportMenu.hidden = !exportMenu.hidden;
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!exportMenu.hidden && !exportMenu.contains(e.target) && e.target !== exportMenuTrigger) {
+      exportMenu.hidden = true;
+    }
+  });
+
+  exportMenu.querySelectorAll(".dropdown-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      exportMenu.hidden = true;
+    });
+  });
+
+  exportBothDirect.addEventListener("click", () => {
+    $("exportAvatar").click();
+    setTimeout(() => {
+      $("exportBanner").click();
+    }, 350);
+  });
+
+  // Global escape key handler
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (!fineTuneModal.hidden) closeFineTune();
+      if (!exportMenu.hidden) exportMenu.hidden = true;
+    }
+  });
+
+  // Drag and drop images anywhere on page
+  const dropOverlay = $("dropOverlay");
+  let dragDepth = 0;
+
+  window.addEventListener("dragenter", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepth++;
+    if (dropOverlay) dropOverlay.hidden = false;
+  });
+
+  window.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  window.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0 && dropOverlay) dropOverlay.hidden = true;
+  });
+
+  window.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragDepth = 0;
+    if (dropOverlay) dropOverlay.hidden = true;
+    const files = Array.from(e.dataTransfer?.files || []);
+    const imgFiles = files.filter(f => f.type.startsWith("image/"));
+    if (imgFiles.length === 0) return;
+
+    for (const file of imgFiles) {
+      const imgData = await imageDataFromFile(file);
+      const aspect = imgData.width / imgData.height;
+      if (aspect > 2.0 || (imgFiles.length === 1 && state.mode === "banner")) {
+        state.sourceBanner = imgData;
+        state.mobileCompatibility.manualWeight = null;
+        state.bannerName = file.name;
+        resetBannerTransform();
+        $("bannerMeta").textContent = `${file.name} · ${state.banner.width} × ${state.banner.height}`;
+        toast(`Banner loaded: ${file.name}`);
+      } else {
+        state.portrait = imgData;
+        state.portraitName = file.name;
+        state.portraitControls = defaultPortraitControls();
+        state.lockedProfile = null;
+        state.mobileCompatibility.manualWeight = null;
+        $("portraitMeta").textContent = `${file.name} · ${state.portrait.width} × ${state.portrait.height}`;
+        toast(`Avatar loaded: ${file.name}`);
+        openProfileEditor({ reset: true });
+      }
+    }
+    updateWorkflowUI();
+    rebuildActiveBanner();
+    scheduleRender();
+  });
+
 }
 
 function setupInteractiveCanvas(canvas, layoutGetter) {

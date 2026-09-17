@@ -1,8 +1,8 @@
-# Boundary Lock Studio
+# headerlock
 
-**Local · Deterministic · No AI**
+**Local · Deterministic · AMOLED Minimalist**
 
-A browser-based studio for building pixel-perfect X (Twitter) profile pictures and banners that align exactly — on both desktop and Android. Everything runs on your machine. No uploads. No API calls. No generative AI.
+A precision studio for building seamless X (Twitter) profile pictures and banners that align perfectly across desktop and mobile. Runs entirely in your browser with zero server uploads, zero tracking, and pure client-side canvas rendering.
 
 ---
 
@@ -21,7 +21,7 @@ A browser-based studio for building pixel-perfect X (Twitter) profile pictures a
 
 ## Why this exists
 
-X's desktop and Android apps place the avatar circle at slightly different positions on the banner. A banner that looks aligned on desktop can show a mismatched crop on Android — and vice versa. Boundary Lock Studio renders both previews simultaneously using geometry verified against the X Android APK (Jetpack Compose layout constants, dp-to-pixel conversion, and JPEG upload flattening behavior) so you can see the exact result before you upload anything.
+X's desktop and Android apps place the avatar circle at slightly different positions on the banner. A banner that looks aligned on desktop can show a mismatched crop on Android — and vice versa. headerlock renders both previews simultaneously using geometry verified against the X Android APK (Jetpack Compose layout constants, dp-to-pixel conversion, and JPEG upload flattening behavior) so you can see the exact result before you upload anything.
 
 ---
 
