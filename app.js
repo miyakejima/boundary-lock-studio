@@ -7,7 +7,7 @@ import {
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.2.0";
+} from "./core.js?v=6.2.1";
 
 // ── Application State ──────────────────────────────────────────
 const state = {
@@ -23,6 +23,8 @@ const state = {
   extend: true,          // Extend banner features below the boundary
   view: "both",          // "both" | "desktop" | "mobile"
   bannerData: null,      // ImageData (1500 × 500)
+  sceneData: null,       // Extended ImageData (1500 × sceneH) for seamless avatar sampling
+  sceneH: 500,           // Effective scene height (500 to 800)
   avatarData: null,      // ImageData (400 × 400)
 };
 
@@ -31,6 +33,11 @@ const bannerBuffer = document.createElement("canvas");
 bannerBuffer.width = 1500;
 bannerBuffer.height = 500;
 const bannerBufferCtx = bannerBuffer.getContext("2d", { willReadFrequently: true });
+
+const sceneBuffer = document.createElement("canvas");
+sceneBuffer.width = 1500;
+sceneBuffer.height = 750;
+const sceneBufferCtx = sceneBuffer.getContext("2d", { willReadFrequently: true });
 
 const avatarBuffer = document.createElement("canvas");
 avatarBuffer.width = 400;
@@ -110,21 +117,21 @@ function createDefaultBanner() {
   return canvas;
 }
 
-// ── Render Working Banner (1500 × 500) ─────────────────────────
+// ── Render Working Banner & Extended Scene ─────────────────────
 function updateWorkingBanner() {
   const width = 1500;
-  const height = 500;
+  const bannerH = 500;
 
   bannerBufferCtx.fillStyle = "#000000";
-  bannerBufferCtx.fillRect(0, 0, width, height);
+  bannerBufferCtx.fillRect(0, 0, width, bannerH);
 
   const img = state.sourceBanner;
   if (!img) return;
 
   // Compute cover scale
   const imgW = img.width || img.naturalWidth || width;
-  const imgH = img.height || img.naturalHeight || height;
-  const baseScale = Math.max(width / imgW, height / imgH);
+  const imgH = img.height || img.naturalHeight || bannerH;
+  const baseScale = Math.max(width / imgW, bannerH / imgH);
   const scale = baseScale * state.zoom;
 
   const drawW = imgW * scale;
@@ -132,23 +139,39 @@ function updateWorkingBanner() {
 
   // Center + pan
   const drawX = (width - drawW) / 2 + state.panX;
-  const drawY = (height - drawH) / 2 + state.panY;
+  const drawY = (bannerH - drawH) / 2 + state.panY;
 
-  bannerBufferCtx.drawImage(img, drawX, drawY, drawW, drawH);
-  state.bannerData = bannerBufferCtx.getImageData(0, 0, width, height);
+  // Determine effective scene height for avatar sampling (up to 800 to fully cover lower avatar)
+  const imgBottom = Math.ceil(drawY + drawH);
+  const sceneH = Math.max(500, Math.min(800, imgBottom));
+  state.sceneH = sceneH;
+
+  // Render extended scene
+  sceneBuffer.width = width;
+  sceneBuffer.height = sceneH;
+  sceneBufferCtx.fillStyle = "#000000";
+  sceneBufferCtx.fillRect(0, 0, width, sceneH);
+  sceneBufferCtx.drawImage(img, drawX, drawY, drawW, drawH);
+  state.sceneData = sceneBufferCtx.getImageData(0, 0, width, sceneH);
+
+  // Render standard 1500 × 500 banner (for export & desktop banner preview)
+  bannerBufferCtx.drawImage(sceneBuffer, 0, 0, width, bannerH, 0, 0, width, bannerH);
+  state.bannerData = bannerBufferCtx.getImageData(0, 0, width, bannerH);
 }
 
 // ── Compute Aligned Avatar (400 × 400) ─────────────────────────
 function updateAvatar() {
-  if (!state.bannerData) return;
+  if (!state.sceneData || !state.bannerData) return;
 
+  const sceneH = state.sceneH || 500;
+  const sceneRect = { x: 0, y: 0, width: 1500, height: sceneH };
   const desktopRect = { x: 0, y: 0, width: 1500, height: 500 };
   const dGeom = geometryFromPreset(PRESETS.desktop, desktopRect);
   const mGeom = geometryFromPreset(PRESETS.androidApp, desktopRect);
 
   let mapping = null;
-  const dMap = sourceMappingFromLayout({ banner: state.bannerData, bannerRect: desktopRect, avatar: dGeom });
-  const mMap = sourceMappingFromLayout({ banner: state.bannerData, bannerRect: desktopRect, avatar: mGeom });
+  const dMap = sourceMappingFromLayout({ banner: state.sceneData, bannerRect: sceneRect, avatar: dGeom });
+  const mMap = sourceMappingFromLayout({ banner: state.sceneData, bannerRect: sceneRect, avatar: mGeom });
 
   if (state.target === "desktop") {
     mapping = dMap;
@@ -157,9 +180,10 @@ function updateAvatar() {
   } else {
     // Shared compromise mapping
     const opt = optimizeSharedAffineMapping({
-      banner: state.bannerData,
+      banner: state.sceneData,
       primaryMapping: dMap,
       secondaryMapping: mMap,
+      pageColor: [0, 0, 0],
     });
     mapping = opt.mapping || dMap;
   }
@@ -177,29 +201,30 @@ function updateAvatar() {
     customAvatarData = pCtx.getImageData(0, 0, pW, pH);
   }
 
-  // Feature continuation: intelligently extends lines and colors below banner edge
+  // Feature continuation: active if extend is enabled and scene reaches bottom of image
   const desktopContinuation = state.extend ? detectBoundaryLines({
-    banner: state.bannerData,
-    bannerRect: desktopRect,
+    banner: state.sceneData,
+    bannerRect: sceneRect,
     avatar: dGeom,
     sensitivity: 0.58,
   }) : null;
 
   const mobileContinuation = state.extend ? detectBoundaryLines({
-    banner: state.bannerData,
-    bannerRect: desktopRect,
+    banner: state.sceneData,
+    bannerRect: sceneRect,
     avatar: mGeom,
     sensitivity: 0.58,
   }) : null;
 
   const activeContinuation = state.target === "mobile" ? mobileContinuation : desktopContinuation;
+  const activeAvatarGeom = state.target === "mobile" ? mGeom : dGeom;
 
   state.avatarData = buildAvatar({
-    banner: state.bannerData,
+    banner: state.sceneData,
     portrait: customAvatarData,
     outputSize: 400,
-    bannerRect: desktopRect,
-    avatar: dGeom,
+    bannerRect: sceneRect,
+    avatar: activeAvatarGeom,
     mode: state.customAvatar ? "portrait" : "banner",
     shape: state.shape,
     pageColor: [0, 0, 0],
@@ -213,8 +238,8 @@ function updateAvatar() {
     },
     compatibility: {
       enabled: true,
-      bannerRect: desktopRect,
-      avatar: dGeom,
+      bannerRect: sceneRect,
+      avatar: activeAvatarGeom,
       sourceMapping: mapping,
       continuation: activeContinuation,
     },
