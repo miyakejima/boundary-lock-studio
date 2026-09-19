@@ -83,7 +83,7 @@ const androidPresetBannerRect = { x: 0, y: 0, width: 914, height: 914 / PRESETS.
 const androidPresetAvatar = geometryFromPreset(PRESETS.androidApp, androidPresetBannerRect);
 assert.equal(PRESETS.androidApp.androidDpGeometry.logicalWidthDp, 411);
 assert.equal(Math.round(androidPresetAvatar.centerX), 116, "Current Android preset must use X Compose's 12dp + 40dp center");
-assert.equal(Math.round(androidPresetAvatar.centerY), 331, "Current Android center must account for the 28dp overlap and 80dp size");
+assert.equal(Math.round(androidPresetAvatar.centerY), 362, "Current Android center must account for the verified 14dp overlap and 80dp size");
 assert.equal(Math.round(androidPresetAvatar.outerRadius), 89);
 assert.equal(androidPresetAvatar.padding, 0, "Compose border must not shrink the 80dp avatar image");
 assert.equal(Math.round(androidPresetAvatar.borderWidth), 4, "Current Android border must scale from X Compose's 2dp overlay border");

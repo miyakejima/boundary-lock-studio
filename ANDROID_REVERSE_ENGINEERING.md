@@ -1,49 +1,51 @@
 # X Android profile geometry
 
-Verified 2026-06-24 against the current Play-distributed build and the immediately newer package:
+Verified 2026-09-18 against production build:
 
-- `12.1.1-release.0` (`versionCode 312011000`), listed by Google Play as updated 2026-06-22.
+- `12.27.0-prod.01` (`versionCode 312270001`), target SDK 35 (Android 15).
+
+Historical verification builds:
+- `12.1.1-release.0` (`versionCode 312011000`), distributed 2026-06-22.
 - `12.2.0-release.0` (`versionCode 312020000`), distributed 2026-06-23.
 
-Package SHA-256 values used during analysis:
+Package SHA-256 values:
 
 - `12.1.1`: `337DC6E1A6B005A6972FA2990C513CB4A861E2EA909FF00F923A19A4DD8C839E`
 - `12.2.0`: `0FB8DAA29A49F0A35C535F53C2AD5CC77BF72D8EB61FC89F78BF79A3C8DE5976`
+- `12.27.0`: `CF897FDFE90E5FB6FDA3E0FBF986DA68815DEBAC9AF3B2C62202786D950910BB` (base APK)
 
 ## Active Compose rules
 
-The updated profile shown by the supplied live screenshot does not use the legacy controller below. X 12.2 also ships a Compose profile header under `com.x.profile.header` (`UserProfileHeaderUi.kt`). Its active constants are:
+X ships an exclusively Compose profile header under `com.x.profile` and `com.x.profile.header`. Its verified constants and layout mechanics are:
 
 ```text
 banner aspect ratio                 3.0
 profile horizontal padding          12dp
 avatar image size                   80dp
-avatar border                        2dp
+avatar border                        2dp (overlay)
 avatar presence wrapper inset        4dp
-under-banner layout reserve         60dp (80dp × 3/4)
-visible avatar overlap              28dp
+visible avatar overlap              14dp
+avatar center below banner seam     26dp (40dp - 14dp)
 ```
 
-The 28dp overlap follows from the 60dp reserve and 88dp avatar wrapper. The wrapper's 4dp visual inset is cancelled before drawing, so the visible 80dp image starts at the wrapper origin. For a logical width `Wdp`:
+The visible 80dp avatar image starts 12dp from the screen start edge and overlaps 14dp into the 3:1 banner (leaving 26dp of the 40dp radius submerged below the banner bottom edge). For a logical width `Wdp`:
 
 ```text
 centerX / screenWidth = 52 / Wdp
-centerY / bannerHeight = 1 + 12 / Wdp
+centerY / bannerHeight = 1 + 78 / Wdp
 outerRadius / screenWidth = 40 / Wdp
 border / screenWidth = 2 / Wdp
 ```
 
-At the tool's 914px preview width and the supplied device's 411dp layout class, this is approximately:
+At the tool's 914px preview width and the standard 411dp layout class, this evaluates to:
 
 ```text
 banner height  304.67px
 centerX        115.65px
-centerY        331.35px
+centerY        362.49px
 outer radius    88.95px
 border           4.45px
 ```
-
-The independently detected circle in the supplied live X screenshot is approximately `(114.5, 329.5)` before accounting for screenshot raster/edge ambiguity. The old preview predicted approximately `(104.5, 309.1)`, which explains the visible up-left error.
 
 ## Legacy rules retained for regression
 

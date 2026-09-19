@@ -8,7 +8,7 @@ import {
   detectBoundaryLines,
   buildAvatar,
   hexToRgb,
-} from "./core.js?v=6.5.0";
+} from "./core.js?v=7.2.0";
 
 // ── Application State ──────────────────────────────────────────
 const state = {

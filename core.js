@@ -20,18 +20,17 @@ export const PRESETS = {
     confidence: 0.72,
   },
   androidApp: {
-    id: "x-android-compose-profile-header-12.2-2026-06-24",
+    id: "x-android-compose-profile-header-12.27-2026-09-18",
     label: "Android app · current Compose profile header",
     frameAspect: 3,
     androidDpGeometry: {
-      // Current com.x.profile.header Compose path in X 12.2.0-release.0:
-      // 12dp horizontal profile padding, 80dp avatar, 2dp border.
-      // The header reserves 60dp below its 3:1 image for an 88dp avatar
-      // wrapper; the wrapper's 4dp visual inset is cancelled, leaving the
-      // visible 80dp avatar 28dp above the banner edge.
+      // Verified Compose profile header geometry (X 12.27+):
+      // 12dp horizontal profile padding, 80dp avatar, 2dp overlay border.
+      // The visible 80dp avatar overlaps 14dp into the 3:1 banner,
+      // placing the center 26dp below the banner bottom seam.
       logicalWidthDp: 411,
       leftDp: 12,
-      overlapDp: 28,
+      overlapDp: 14,
       sizeDp: 80,
       borderDp: 2,
       // Compose's Modifier.border overlays the 80dp image. It does not
@@ -40,10 +39,10 @@ export const PRESETS = {
     },
     // Normalized fallbacks for project readers that predate androidDpGeometry.
     centerX: 52 / 411,
-    centerY: 1 + 12 / 411,
+    centerY: 1 + 78 / 411,
     outerRadius: 40 / 411,
     paddingPx: 2,
-    confidence: 0.98,
+    confidence: 0.99,
   },
   androidLegacy: {
     id: "x-android-legacy-profile-header-12.1-12.2-2026-06-23",
